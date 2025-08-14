@@ -8,6 +8,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class UserDAO extends BaseDAO<User, Long> {
 
@@ -17,21 +18,29 @@ public class UserDAO extends BaseDAO<User, Long> {
 
     // Find user by username
     public User findByUsername(String username) {
-        String hql = "FROM User u WHERE u.username = ?0";
-        return executeUniqueQuery(hql, username);
+        return executeUniqueQuery(
+                "FROM User u WHERE u.username = :username",
+                User.class,
+                query -> query.setParameter("username", username)
+        );
     }
 
     // Find user by email
     public User findByEmail(String email) {
-        String hql = "FROM User u WHERE u.email = ?0";
-        return executeUniqueQuery(hql, email);
+        return executeUniqueQuery(
+                "FROM User u WHERE u.email = :email",
+                User.class,
+                query -> query.setParameter("email", email)
+        );
     }
 
     // Authenticate user
     public User authenticate(String username, String password) {
         try (Session session = sessionFactory.openSession()) {
             Query<User> query = session.createQuery(
-                    "FROM User u WHERE u.username = :username AND u.isActive = true", User.class);
+                    "FROM User u WHERE u.username = :username AND u.isActive = true",
+                    User.class
+            );
             query.setParameter("username", username);
             User user = query.uniqueResult();
 
@@ -48,37 +57,48 @@ public class UserDAO extends BaseDAO<User, Long> {
 
     // Find users by role
     public List<User> findByRole(UserRole role) {
-        String hql = "FROM User u WHERE u.role = ?0 AND u.isActive = true";
-        return executeQuery(hql, role);
+        return executeQuery(
+                "FROM User u WHERE u.role = :role AND u.isActive = true",
+                User.class,
+                query -> query.setParameter("role", role)
+        );
     }
 
     // Find users by department
     public List<User> findByDepartment(Department department) {
-        String hql = "FROM User u WHERE u.department = ?0 AND u.isActive = true";
-        return executeQuery(hql, department);
+        return executeQuery(
+                "FROM User u WHERE u.department = :department AND u.isActive = true",
+                User.class,
+                query -> query.setParameter("department", department)
+        );
     }
 
     // Find students by department and level
     public List<User> findStudentsByDepartmentAndLevel(Department department, int level) {
-        try (Session session = sessionFactory.openSession()) {
-            Query<User> query = session.createQuery(
-                    "SELECT DISTINCT u FROM User u " +
-                            "JOIN Course c ON c.department = u.department " +
-                            "WHERE u.role = :role AND u.department = :department " +
-                            "AND c.level = :level AND u.isActive = true",
-                    User.class);
-
-            query.setParameter("role", UserRole.STUDENT);
-            query.setParameter("department", department);
-            query.setParameter("level", level);
-            return query.list();
-        }
+        return executeQuery(
+                "SELECT DISTINCT u FROM User u " +
+                        "JOIN Course c ON c.department = u.department " +
+                        "WHERE u.role = :role AND u.department = :department " +
+                        "AND c.level = :level AND u.isActive = true",
+                User.class,
+                query -> {
+                    query.setParameter("role", UserRole.STUDENT);
+                    query.setParameter("department", department);
+                    query.setParameter("level", level);
+                }
+        );
     }
 
     // Find lecturers by department
     public List<User> findLecturersByDepartment(Department department) {
-        String hql = "FROM User u WHERE u.role = ?0 AND u.department = ?1 AND u.isActive = true";
-        return executeQuery(hql, UserRole.LECTURER, department);
+        return executeQuery(
+                "FROM User u WHERE u.role = :role AND u.department = :department AND u.isActive = true",
+                User.class,
+                query -> {
+                    query.setParameter("role", UserRole.LECTURER);
+                    query.setParameter("department", department);
+                }
+        );
     }
 
     // Deactivate user (soft delete)
@@ -97,6 +117,22 @@ public class UserDAO extends BaseDAO<User, Long> {
                 transaction.rollback();
             }
             throw new RuntimeException("Failed to deactivate user", e);
+        }
+    }
+
+    private <T> List<T> executeQuery(String hql, Class<T> resultClass, Consumer<Query<T>> paramSetter) {
+        try (Session session = sessionFactory.openSession()) {
+            Query<T> query = session.createQuery(hql, resultClass);
+            paramSetter.accept(query);
+            return query.list();
+        }
+    }
+
+    private <T> T executeUniqueQuery(String hql, Class<T> resultClass, Consumer<Query<T>> paramSetter) {
+        try (Session session = sessionFactory.openSession()) {
+            Query<T> query = session.createQuery(hql, resultClass);
+            paramSetter.accept(query);
+            return query.uniqueResult();
         }
     }
 }

@@ -2,7 +2,8 @@ package org.timeflow.dao;
 
 import org.timeflow.entity.*;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
+import jakarta.persistence.criteria.*;
+import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 
@@ -12,87 +13,191 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
         super(Conflict.class);
     }
 
-    // Find conflicts by status
-    public List<Conflict> findByStatus(ConflictStatus status) {
-        String hql = "FROM Conflict c WHERE c.status = ?0 ORDER BY c.detectedAt DESC";
-        return executeQuery(hql, status);
+    // Find conflicts by status using Criteria API
+    public List findByStatus(ConflictStatus status) {
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Conflict> query = cb.createQuery(Conflict.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            query.select(root)
+                    .where(cb.equal(root.get("status"), status))
+                    .orderBy(cb.desc(root.get("detectedAt")));
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+        }
     }
 
-    // Find conflicts by timetable
+    // Find conflicts by timetable using Criteria API
     public List<Conflict> findByTimetable(Timetable timetable) {
-        String hql = "FROM Conflict c WHERE c.timetable1 = ?0 OR c.timetable2 = ?0";
-        return executeQuery(hql, timetable);
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Conflict> query = cb.createQuery(Conflict.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            Predicate timetable1Match = cb.equal(root.get("timetable1"), timetable);
+            Predicate timetable2Match = cb.equal(root.get("timetable2"), timetable);
+
+            query.select(root)
+                    .where(cb.or(timetable1Match, timetable2Match));
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+        }
     }
 
-    // Find conflicts by type
+    // Find conflicts by type using Criteria API
     public List<Conflict> findByType(ConflictType type) {
-        String hql = "FROM Conflict c WHERE c.type = ?0 ORDER BY c.detectedAt DESC";
-        return executeQuery(hql, type);
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Conflict> query = cb.createQuery(Conflict.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            query.select(root)
+                    .where(cb.equal(root.get("type"), type))
+                    .orderBy(cb.desc(root.get("detectedAt")));
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+        }
     }
 
-    // Find unresolved conflicts
+    // Find unresolved conflicts using Criteria API
     public List<Conflict> findUnresolvedConflicts() {
         try (Session session = sessionFactory.openSession()) {
-            Query<Conflict> query = session.createQuery(
-                    "FROM Conflict c WHERE c.status IN (:statuses) ORDER BY c.detectedAt DESC",
-                    Conflict.class);
-            query.setParameterList("statuses", List.of(ConflictStatus.DETECTED, ConflictStatus.APPEALED));
-            return query.list();
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Conflict> query = cb.createQuery(Conflict.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            List<ConflictStatus> unresolvedStatuses = List.of(ConflictStatus.DETECTED, ConflictStatus.APPEALED);
+
+            query.select(root)
+                    .where(root.get("status").in(unresolvedStatuses))
+                    .orderBy(cb.desc(root.get("detectedAt")));
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
-    // Find conflicts for a specific department
+    // Find conflicts for a specific department using Criteria API with joins
     public List<Conflict> findByDepartment(Department department) {
         try (Session session = sessionFactory.openSession()) {
-            Query<Conflict> query = session.createQuery(
-                    "FROM Conflict c WHERE " +
-                            "c.timetable1.course.department = :department " +
-                            "OR c.timetable2.course.department = :department " +
-                            "ORDER BY c.detectedAt DESC",
-                    Conflict.class);
-            query.setParameter("department", department);
-            return query.list();
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Conflict> query = cb.createQuery(Conflict.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            // Join paths for timetable1 -> course -> department
+            Join<Conflict, Timetable> timetable1Join = root.join("timetable1");
+            Join<Timetable, Course> course1Join = timetable1Join.join("course");
+
+            // Join paths for timetable2 -> course -> department
+            Join<Conflict, Timetable> timetable2Join = root.join("timetable2");
+            Join<Timetable, Course> course2Join = timetable2Join.join("course");
+
+            Predicate dept1Match = cb.equal(course1Join.get("department"), department);
+            Predicate dept2Match = cb.equal(course2Join.get("department"), department);
+
+            query.select(root)
+                    .where(cb.or(dept1Match, dept2Match))
+                    .orderBy(cb.desc(root.get("detectedAt")));
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
-    // Find conflicts involving a specific lecturer
+    // Find conflicts involving a specific lecturer using Criteria API with joins
     public List<Conflict> findByLecturer(User lecturer) {
         try (Session session = sessionFactory.openSession()) {
-            Query<Conflict> query = session.createQuery(
-                    "FROM Conflict c WHERE " +
-                            "c.timetable1.course.lecturer = :lecturer " +
-                            "OR c.timetable2.course.lecturer = :lecturer " +
-                            "ORDER BY c.detectedAt DESC",
-                    Conflict.class);
-            query.setParameter("lecturer", lecturer);
-            return query.list();
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Conflict> query = cb.createQuery(Conflict.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            // Join paths for timetable1 -> course -> lecturer
+            Join<Conflict, Timetable> timetable1Join = root.join("timetable1");
+            Join<Timetable, Course> course1Join = timetable1Join.join("course");
+
+            // Join paths for timetable2 -> course -> lecturer
+            Join<Conflict, Timetable> timetable2Join = root.join("timetable2");
+            Join<Timetable, Course> course2Join = timetable2Join.join("course");
+
+            Predicate lecturer1Match = cb.equal(course1Join.get("lecturer"), lecturer);
+            Predicate lecturer2Match = cb.equal(course2Join.get("lecturer"), lecturer);
+
+            query.select(root)
+                    .where(cb.or(lecturer1Match, lecturer2Match))
+                    .orderBy(cb.desc(root.get("detectedAt")));
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
-    // Check if conflict already exists
+    // Check if conflict already exists using Criteria API
     public Conflict findExistingConflict(Timetable timetable1, Timetable timetable2) {
         try (Session session = sessionFactory.openSession()) {
-            Query<Conflict> query = session.createQuery(
-                    "FROM Conflict c WHERE " +
-                            "(c.timetable1 = :t1 AND c.timetable2 = :t2) " +
-                            "OR (c.timetable1 = :t2 AND c.timetable2 = :t1)",
-                    Conflict.class);
-            query.setParameter("t1", timetable1);
-            query.setParameter("t2", timetable2);
-            return query.uniqueResult();
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Conflict> query = cb.createQuery(Conflict.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            // Check both combinations: (t1, t2) and (t2, t1)
+            Predicate combo1 = cb.and(
+                    cb.equal(root.get("timetable1"), timetable1),
+                    cb.equal(root.get("timetable2"), timetable2)
+            );
+
+            Predicate combo2 = cb.and(
+                    cb.equal(root.get("timetable1"), timetable2),
+                    cb.equal(root.get("timetable2"), timetable1)
+            );
+
+            query.select(root).where(cb.or(combo1, combo2));
+
+            TypedQuery<Conflict> typedQuery = (TypedQuery<Conflict>) session.createQuery(String.valueOf(query));
+            List<Conflict> results = typedQuery.getResultList();
+
+            return results.isEmpty() ? null : results.get(0);
         }
     }
 
-    // Get conflict statistics
-    public List<Object[]> getConflictStats() {
+    // Get conflict statistics using Criteria API with groupBy and multiselect
+    public List<Object> getConflictStats() {
         try (Session session = sessionFactory.openSession()) {
-            Query<Object[]> query = session.createQuery(
-                    "SELECT c.type, c.status, COUNT(c.id) " +
-                            "FROM Conflict c " +
-                            "GROUP BY c.type, c.status " +
-                            "ORDER BY c.type, c.status",
-                    Object[].class);
-            return query.list();
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<ConflictStatistic> query = cb.createQuery(ConflictStatistic.class);
+            Root<Conflict> root = query.from(Conflict.class);
+
+            query.multiselect(
+                            root.get("type"),
+                            root.get("status"),
+                            cb.count(root.get("id"))
+                    )
+                    .groupBy(root.get("type"), root.get("status"))
+                    .orderBy(
+                            cb.asc(root.get("type")),
+                            cb.asc(root.get("status"))
+                    );
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
+    }
+
+    // Helper class for statistics result
+    public static class ConflictStatistic {
+        private ConflictType type;
+        private ConflictStatus status;
+        private Long count;
+
+        public ConflictStatistic(ConflictType type, ConflictStatus status, Long count) {
+            this.type = type;
+            this.status = status;
+            this.count = count;
+        }
+
+        // Getters
+        public ConflictType getType() { return type; }
+        public ConflictStatus getStatus() { return status; }
+        public Long getCount() { return count; }
+
+        // Setters
+        public void setType(ConflictType type) { this.type = type; }
+        public void setStatus(ConflictStatus status) { this.status = status; }
+        public void setCount(Long count) { this.count = count; }
     }
 }

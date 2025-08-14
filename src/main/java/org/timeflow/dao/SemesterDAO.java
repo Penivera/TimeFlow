@@ -3,7 +3,8 @@ package org.timeflow.dao;
 import org.timeflow.entity.Semester;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.query.Query;
+import jakarta.persistence.criteria.*;
+import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 
@@ -13,34 +14,60 @@ public class SemesterDAO extends BaseDAO<Semester, Long> {
         super(Semester.class);
     }
 
-    // Get current semester
+    // Get current semester using Criteria API
     public Semester getCurrentSemester() {
-        String hql = "FROM Semester s WHERE s.isCurrent = true";
-        return executeUniqueQuery(hql);
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Semester> query = cb.createQuery(Semester.class);
+            Root<Semester> root = query.from(Semester.class);
+
+            query.select(root).where(cb.isTrue(root.get("isCurrent")));
+
+            TypedQuery<Semester> typedQuery = (TypedQuery<Semester>) session.createQuery(String.valueOf(query));
+            List<Semester> results = typedQuery.getResultList();
+
+            return results.isEmpty() ? null : results.get(0);
+        }
     }
 
-    // Find semester by name and academic year
+    // Find semester by name and academic year using Criteria API
     public Semester findByNameAndYear(String name, String academicYear) {
-        String hql = "FROM Semester s WHERE s.name = ?0 AND s.academicYear = ?1";
-        return executeUniqueQuery(hql, name, academicYear);
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Semester> query = cb.createQuery(Semester.class);
+            Root<Semester> root = query.from(Semester.class);
+
+            Predicate nameMatch = cb.equal(root.get("name"), name);
+            Predicate yearMatch = cb.equal(root.get("academicYear"), academicYear);
+
+            query.select(root).where(cb.and(nameMatch, yearMatch));
+
+            TypedQuery<Semester> typedQuery = (TypedQuery<Semester>) session.createQuery(String.valueOf(query));
+            List<Semester> results = typedQuery.getResultList();
+
+            return results.isEmpty() ? null : results.get(0);
+        }
     }
 
-    // Set current semester
+    // Set current semester using Criteria API
     public void setCurrentSemester(Long semesterId) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
             // First, set all semesters to not current
-            Query updateQuery = session.createQuery("UPDATE Semester SET isCurrent = false");
-            updateQuery.executeUpdate();
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaUpdate<Semester> updateAll = cb.createCriteriaUpdate(Semester.class);
+            Root<Semester> rootAll = updateAll.from(Semester.class);
+            updateAll.set(rootAll.get("isCurrent"), false);
+            session.createQuery((javax.persistence.criteria.CriteriaUpdate) updateAll).executeUpdate();
 
             // Then set the specified semester as current
-            Semester semester = session.get(Semester.class, semesterId);
-            if (semester != null) {
-                semester.setCurrent(true);
-                session.update(semester);
-            }
+            CriteriaUpdate<Semester> updateCurrent = cb.createCriteriaUpdate(Semester.class);
+            Root<Semester> rootCurrent = updateCurrent.from(Semester.class);
+            updateCurrent.set(rootCurrent.get("isCurrent"), true)
+                    .where(cb.equal(rootCurrent.get("id"), semesterId));
+            session.createQuery((javax.persistence.criteria.CriteriaUpdate) updateCurrent).executeUpdate();
 
             transaction.commit();
         } catch (Exception e) {
@@ -51,9 +78,18 @@ public class SemesterDAO extends BaseDAO<Semester, Long> {
         }
     }
 
-    // Find semesters by academic year
+    // Find semesters by academic year using Criteria API
     public List<Semester> findByAcademicYear(String academicYear) {
-        String hql = "FROM Semester s WHERE s.academicYear = ?0 ORDER BY s.startDate";
-        return executeQuery(hql, academicYear);
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder cb = (CriteriaBuilder) session.getCriteriaBuilder();
+            CriteriaQuery<Semester> query = cb.createQuery(Semester.class);
+            Root<Semester> root = query.from(Semester.class);
+
+            query.select(root)
+                    .where(cb.equal(root.get("academicYear"), academicYear))
+                    .orderBy(cb.asc(root.get("startDate")));
+
+            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+        }
     }
 }
