@@ -1,6 +1,8 @@
 package org.timeflow.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import org.hibernate.annotations.NaturalId;
+
 import java.util.List;
 
 @Entity
@@ -11,12 +13,13 @@ public class Department {
     private Long id;
 
     @Column(nullable = false)
+    @NaturalId
     private String name;
 
     @Column(unique = true, nullable = false)
     private String code;
 
-    @Column(name = "head_of_department")
+    @Column(name = "head_of_department",nullable = true)
     private String headOfDepartment;
 
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

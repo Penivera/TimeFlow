@@ -1,13 +1,14 @@
 package org.timeflow.dao;
 
-import org.timeflow.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.timeflow.util.HibernateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.Serializable;
 
+import java.io.Serializable;
+import java.util.List;
 
 public abstract class BaseDAO<T, ID extends Serializable> {
 
@@ -25,7 +26,7 @@ public abstract class BaseDAO<T, ID extends Serializable> {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-            session.save(entity);
+            session.persist(entity);
             transaction.commit();
             logger.info("Entity saved successfully: {}", entity.getClass().getSimpleName());
             return entity;
@@ -41,7 +42,7 @@ public abstract class BaseDAO<T, ID extends Serializable> {
     // Read operation
     public T findById(ID id) {
         try (Session session = sessionFactory.openSession()) {
-            return session.get(entityClass, id);
+            return session.find(entityClass, id);
         } catch (Exception e) {
             logger.error("Error finding entity by id {}: {}", id, e.getMessage(), e);
             throw new RuntimeException("Failed to find entity", e);
@@ -53,7 +54,7 @@ public abstract class BaseDAO<T, ID extends Serializable> {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-            session.update(entity);
+            session.merge(entity);
             transaction.commit();
             logger.info("Entity updated successfully: {}", entity.getClass().getSimpleName());
             return entity;
@@ -64,4 +65,16 @@ public abstract class BaseDAO<T, ID extends Serializable> {
             logger.error("Error updating entity: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to update entity", e);
         }
-    }}
+    }
+
+    // Fixed findAll to return List<T>
+    public List<T> findAll() {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM " + entityClass.getSimpleName(), entityClass)
+                    .getResultList();
+        } catch (Exception e) {
+            logger.error("Error finding all entities: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to find all entities", e);
+        }
+    }
+}

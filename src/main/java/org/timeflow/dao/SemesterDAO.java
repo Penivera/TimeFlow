@@ -60,14 +60,14 @@ public class SemesterDAO extends BaseDAO<Semester, Long> {
             CriteriaUpdate<Semester> updateAll = cb.createCriteriaUpdate(Semester.class);
             Root<Semester> rootAll = updateAll.from(Semester.class);
             updateAll.set(rootAll.get("isCurrent"), false);
-            session.createQuery((javax.persistence.criteria.CriteriaUpdate) updateAll).executeUpdate();
+            session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) updateAll).executeUpdate();
 
             // Then set the specified semester as current
             CriteriaUpdate<Semester> updateCurrent = cb.createCriteriaUpdate(Semester.class);
             Root<Semester> rootCurrent = updateCurrent.from(Semester.class);
             updateCurrent.set(rootCurrent.get("isCurrent"), true)
                     .where(cb.equal(rootCurrent.get("id"), semesterId));
-            session.createQuery((javax.persistence.criteria.CriteriaUpdate) updateCurrent).executeUpdate();
+            session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) updateCurrent).executeUpdate();
 
             transaction.commit();
         } catch (Exception e) {
@@ -89,7 +89,7 @@ public class SemesterDAO extends BaseDAO<Semester, Long> {
                     .where(cb.equal(root.get("academicYear"), academicYear))
                     .orderBy(cb.asc(root.get("startDate")));
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 }

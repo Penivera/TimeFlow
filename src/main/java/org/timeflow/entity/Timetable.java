@@ -1,6 +1,6 @@
 package org.timeflow.entity;
-
-import javax.persistence.*;
+import java.time.DayOfWeek;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -76,7 +76,7 @@ public class Timetable {
     public Course getCourse() { return course; }
     public void setCourse(Course course) { this.course = course; }
 
-    public DayOfWeek getDayOfWeek() { return dayOfWeek; }
+    public java.time.DayOfWeek getDayOfWeek() { return dayOfWeek; }
     public void setDayOfWeek(DayOfWeek dayOfWeek) { this.dayOfWeek = dayOfWeek; }
 
     public LocalTime getStartTime() { return startTime; }

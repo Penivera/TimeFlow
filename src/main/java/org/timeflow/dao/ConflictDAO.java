@@ -24,7 +24,7 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
                     .where(cb.equal(root.get("status"), status))
                     .orderBy(cb.desc(root.get("detectedAt")));
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
@@ -41,7 +41,7 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
             query.select(root)
                     .where(cb.or(timetable1Match, timetable2Match));
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
@@ -56,7 +56,7 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
                     .where(cb.equal(root.get("type"), type))
                     .orderBy(cb.desc(root.get("detectedAt")));
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
@@ -73,7 +73,7 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
                     .where(root.get("status").in(unresolvedStatuses))
                     .orderBy(cb.desc(root.get("detectedAt")));
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
@@ -99,7 +99,7 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
                     .where(cb.or(dept1Match, dept2Match))
                     .orderBy(cb.desc(root.get("detectedAt")));
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
@@ -125,7 +125,7 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
                     .where(cb.or(lecturer1Match, lecturer2Match))
                     .orderBy(cb.desc(root.get("detectedAt")));
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 
@@ -174,7 +174,7 @@ public class ConflictDAO extends BaseDAO<Conflict, Long> {
                             cb.asc(root.get("status"))
                     );
 
-            return session.createQuery((javax.persistence.criteria.CriteriaUpdate) query).getResultList();
+            return session.createQuery((jakarta.persistence.criteria.CriteriaUpdate) query).getResultList();
         }
     }
 

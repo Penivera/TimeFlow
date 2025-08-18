@@ -1,6 +1,6 @@
 package org.timeflow.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,7 +14,7 @@ public class Conflict {
     @JoinColumn(name = "timetable_id_1")
     private Timetable timetable1;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "timetable_id_2")
     private Timetable timetable2;
 
@@ -48,7 +48,7 @@ public class Conflict {
         this.detectedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters (similar pattern as above)
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -76,4 +76,3 @@ public class Conflict {
     public ConflictType getType() { return type; }
     public void setType(ConflictType type) { this.type = type; }
 }
-

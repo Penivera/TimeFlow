@@ -1,17 +1,20 @@
 package org.timeflow.entity;
 
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import org.hibernate.annotations.NaturalId;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "Users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true, nullable = false)
+    @NaturalId
     private String username;
 
     @Column(unique = true, nullable = false)

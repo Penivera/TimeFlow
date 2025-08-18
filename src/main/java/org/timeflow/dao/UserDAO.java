@@ -37,17 +37,14 @@ public class UserDAO extends BaseDAO<User, Long> {
     // Authenticate user
     public User authenticate(String username, String password) {
         try (Session session = sessionFactory.openSession()) {
-            Query<User> query = session.createQuery(
-                    "FROM User u WHERE u.username = :username AND u.isActive = true",
-                    User.class
-            );
-            query.setParameter("username", username);
-            User user = query.uniqueResult();
+            User user = session.bySimpleNaturalId(User.class).load(username);
+
 
             // Note: In production, use proper password hashing verification
             if (user != null && user.getPassword().equals(password)) {
                 return user;
             }
+            logger.info("Incorrect username or password");
             return null;
         } catch (Exception e) {
             logger.error("Authentication failed for user: {}", username, e);
@@ -106,10 +103,10 @@ public class UserDAO extends BaseDAO<User, Long> {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-            User user = session.get(User.class, userId);
+            User user = session.find(User.class, userId);
             if (user != null) {
                 user.setActive(false);
-                session.update(user);
+                session.merge(user);
             }
             transaction.commit();
         } catch (Exception e) {
