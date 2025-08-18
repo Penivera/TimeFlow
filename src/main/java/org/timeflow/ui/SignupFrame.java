@@ -24,15 +24,19 @@ public class SignupFrame extends JDialog {
     private JPasswordField passwordField;
     private JComboBox<UserRole> roleComboBox;
     private JComboBox<Department> departmentComboBox;
+    private JComboBox<Department> nonStudentDeptComboBox;
     private JTextField deptNameField;
     private JTextField deptCodeField;
     private JTextField deptHeadField;
+    private JRadioButton selectExistingDeptRadio;
+    private JRadioButton createNewDeptRadio;
     private JButton signupButton;
     private JButton cancelButton;
     private UserDAO userDAO;
     private DepartmentDAO departmentDAO;
     private JPanel departmentPanel;
     private CardLayout cardLayout;
+    private JPanel textFieldsPanel;
 
     public SignupFrame(JFrame parent) {
         super(parent, true);
@@ -41,8 +45,8 @@ public class SignupFrame extends JDialog {
         setupLookAndFeel();
         initComponents();
         setTitle("TimeFlow - Sign Up");
-        setSize(400, 550);
-        setMinimumSize(new Dimension(350, 450));
+        setSize(400, 600);
+        setMinimumSize(new Dimension(350, 500));
         setLocationRelativeTo(parent);
         setResizable(true);
     }
@@ -52,15 +56,9 @@ public class SignupFrame extends JDialog {
             UIManager.setLookAndFeel(new FlatLightLaf());
             UIManager.put("Button.arc", 10);
             UIManager.put("Component.arc", 10);
-            UIManager.put("TextField.border", BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Color.BLACK, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-            UIManager.put("PasswordField.border", BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Color.BLACK, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-            UIManager.put("ComboBox.border", BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Color.BLACK, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+            UIManager.put("TextField.border", null);
+            UIManager.put("PasswordField.border", null);
+            UIManager.put("ComboBox.border", BorderFactory.createLineBorder(Color.BLACK, 1));
             UIManager.put("Button.background", Color.BLACK);
             UIManager.put("Button.foreground", Color.WHITE);
         } catch (Exception e) {
@@ -100,13 +98,15 @@ public class SignupFrame extends JDialog {
         mainPanel.add(usernameLabel, gbc);
 
         usernameField = new JTextField(20);
-        usernameField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
         usernameField.setForeground(Color.BLACK);
-        usernameField.setBackground(new Color(240, 240, 240));
+        usernameField.setBackground(Color.WHITE);
+        usernameField.setCaretColor(Color.BLACK);
         usernameField.setOpaque(true);
-        usernameField.setPreferredSize(new Dimension(200, 30));
+        usernameField.setPreferredSize(new Dimension(300, 40));
         gbc.gridx = 1;
         gbc.gridy = 1;
+        gbc.weightx = 1.0;
         mainPanel.add(usernameField, gbc);
 
         JLabel emailLabel = new JLabel("Email:");
@@ -117,13 +117,15 @@ public class SignupFrame extends JDialog {
         mainPanel.add(emailLabel, gbc);
 
         emailField = new JTextField(20);
-        emailField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        emailField.setFont(new Font("Arial", Font.PLAIN, 14));
         emailField.setForeground(Color.BLACK);
-        emailField.setBackground(new Color(240, 240, 240));
+        emailField.setBackground(Color.WHITE);
+        emailField.setCaretColor(Color.BLACK);
         emailField.setOpaque(true);
-        emailField.setPreferredSize(new Dimension(200, 30));
+        emailField.setPreferredSize(new Dimension(300, 40));
         gbc.gridx = 1;
         gbc.gridy = 2;
+        gbc.weightx = 1.0;
         mainPanel.add(emailField, gbc);
 
         JLabel passwordLabel = new JLabel("Password:");
@@ -134,13 +136,15 @@ public class SignupFrame extends JDialog {
         mainPanel.add(passwordLabel, gbc);
 
         passwordField = new JPasswordField(20);
-        passwordField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
         passwordField.setForeground(Color.BLACK);
-        passwordField.setBackground(new Color(240, 240, 240));
+        passwordField.setBackground(Color.WHITE);
+        passwordField.setCaretColor(Color.BLACK);
         passwordField.setOpaque(true);
-        passwordField.setPreferredSize(new Dimension(200, 30));
+        passwordField.setPreferredSize(new Dimension(300, 40));
         gbc.gridx = 1;
         gbc.gridy = 3;
+        gbc.weightx = 1.0;
         mainPanel.add(passwordField, gbc);
 
         JLabel roleLabel = new JLabel("Role:");
@@ -151,12 +155,13 @@ public class SignupFrame extends JDialog {
         mainPanel.add(roleLabel, gbc);
 
         roleComboBox = new JComboBox<>(new UserRole[]{UserRole.STUDENT, UserRole.LECTURER, UserRole.ADMIN, UserRole.EXAMS_OFFICER});
-        roleComboBox.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
-        roleComboBox.setBackground(new Color(240, 240, 240));
+        roleComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+        roleComboBox.setBackground(Color.WHITE);
         roleComboBox.setForeground(Color.BLACK);
-        roleComboBox.setPreferredSize(new Dimension(200, 30));
+        roleComboBox.setPreferredSize(new Dimension(300, 40));
         gbc.gridx = 1;
         gbc.gridy = 4;
+        gbc.weightx = 1.0;
         mainPanel.add(roleComboBox, gbc);
 
         // Department panel with CardLayout
@@ -164,12 +169,12 @@ public class SignupFrame extends JDialog {
         cardLayout = new CardLayout();
         departmentPanel.setLayout(cardLayout);
         departmentPanel.setBackground(Color.WHITE);
-        departmentPanel.setPreferredSize(new Dimension(300, 100)); // Ensure panel has sufficient size
+        departmentPanel.setPreferredSize(new Dimension(350, 200));
 
         // Dropdown panel for STUDENT
         JPanel dropdownPanel = new JPanel(new GridBagLayout());
         dropdownPanel.setBackground(Color.WHITE);
-        dropdownPanel.setPreferredSize(new Dimension(300, 50)); // Ensure panel sizes correctly
+        dropdownPanel.setPreferredSize(new Dimension(350, 50));
         JLabel departmentLabel = new JLabel("Department:");
         departmentLabel.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
         departmentLabel.setForeground(Color.BLACK);
@@ -179,38 +184,82 @@ public class SignupFrame extends JDialog {
         dropdownPanel.add(departmentLabel, gbc);
 
         departmentComboBox = new JComboBox<Department>();
-        departmentComboBox.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
-        departmentComboBox.setBackground(new Color(240, 240, 240));
+        departmentComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+        departmentComboBox.setBackground(Color.WHITE);
         departmentComboBox.setForeground(Color.BLACK);
-        departmentComboBox.setPreferredSize(new Dimension(200, 30));
-        loadDepartments();
+        departmentComboBox.setPreferredSize(new Dimension(300, 40));
         gbc.gridx = 1;
         gbc.gridy = 0;
+        gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         dropdownPanel.add(departmentComboBox, gbc);
 
         // Text fields panel for non-STUDENT
-        JPanel textFieldsPanel = new JPanel(new GridBagLayout());
+        textFieldsPanel = new JPanel(new GridBagLayout());
         textFieldsPanel.setBackground(Color.WHITE);
-        textFieldsPanel.setPreferredSize(new Dimension(300, 100)); // Ensure panel sizes correctly
+        textFieldsPanel.setPreferredSize(new Dimension(350, 200));
+
+        selectExistingDeptRadio = new JRadioButton("Select Existing Department");
+        selectExistingDeptRadio.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        selectExistingDeptRadio.setForeground(Color.BLACK);
+        selectExistingDeptRadio.setBackground(Color.WHITE);
+        selectExistingDeptRadio.setSelected(true);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        textFieldsPanel.add(selectExistingDeptRadio, gbc);
+
+        createNewDeptRadio = new JRadioButton("Create New Department");
+        createNewDeptRadio.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        createNewDeptRadio.setForeground(Color.BLACK);
+        createNewDeptRadio.setBackground(Color.WHITE);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        textFieldsPanel.add(createNewDeptRadio, gbc);
+
+        ButtonGroup deptChoiceGroup = new ButtonGroup();
+        deptChoiceGroup.add(selectExistingDeptRadio);
+        deptChoiceGroup.add(createNewDeptRadio);
+
+        JLabel nonStudentDeptLabel = new JLabel("Department:");
+        nonStudentDeptLabel.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        nonStudentDeptLabel.setForeground(Color.BLACK);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        textFieldsPanel.add(nonStudentDeptLabel, gbc);
+
+        nonStudentDeptComboBox = new JComboBox<Department>();
+        nonStudentDeptComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+        nonStudentDeptComboBox.setBackground(Color.WHITE);
+        nonStudentDeptComboBox.setForeground(Color.BLACK);
+        nonStudentDeptComboBox.setPreferredSize(new Dimension(300, 40));
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        textFieldsPanel.add(nonStudentDeptComboBox, gbc);
 
         JLabel deptNameLabel = new JLabel("Department Name:");
         deptNameLabel.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
         deptNameLabel.setForeground(Color.BLACK);
         gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 1;
+        gbc.gridy = 3;
         textFieldsPanel.add(deptNameLabel, gbc);
 
         deptNameField = new JTextField(20);
-        deptNameField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        deptNameField.setFont(new Font("Arial", Font.PLAIN, 14));
         deptNameField.setForeground(Color.BLACK);
-        deptNameField.setBackground(new Color(240, 240, 240));
+        deptNameField.setBackground(Color.WHITE);
+        deptNameField.setCaretColor(Color.BLACK);
         deptNameField.setOpaque(true);
-        deptNameField.setPreferredSize(new Dimension(200, 30));
-        deptNameField.setEditable(true); // Ensure editable
+        deptNameField.setPreferredSize(new Dimension(300, 40));
+        deptNameField.setEditable(false);
+        deptNameField.setBorder(BorderFactory.createLineBorder(Color.RED));
         gbc.gridx = 1;
-        gbc.gridy = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         textFieldsPanel.add(deptNameField, gbc);
 
@@ -218,18 +267,21 @@ public class SignupFrame extends JDialog {
         deptCodeLabel.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
         deptCodeLabel.setForeground(Color.BLACK);
         gbc.gridx = 0;
-        gbc.gridy = 1;
+        gbc.gridy = 4;
         textFieldsPanel.add(deptCodeLabel, gbc);
 
         deptCodeField = new JTextField(20);
-        deptCodeField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        deptCodeField.setFont(new Font("Arial", Font.PLAIN, 14));
         deptCodeField.setForeground(Color.BLACK);
-        deptCodeField.setBackground(new Color(240, 240, 240));
+        deptCodeField.setBackground(Color.WHITE);
+        deptCodeField.setCaretColor(Color.BLACK);
         deptCodeField.setOpaque(true);
-        deptCodeField.setPreferredSize(new Dimension(200, 30));
-        deptCodeField.setEditable(true); // Ensure editable
+        deptCodeField.setPreferredSize(new Dimension(300, 40));
+        deptCodeField.setEditable(false);
+        deptCodeField.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         gbc.gridx = 1;
-        gbc.gridy = 1;
+        gbc.gridy = 4;
+        gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         textFieldsPanel.add(deptCodeField, gbc);
 
@@ -237,20 +289,54 @@ public class SignupFrame extends JDialog {
         deptHeadLabel.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
         deptHeadLabel.setForeground(Color.BLACK);
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 5;
         textFieldsPanel.add(deptHeadLabel, gbc);
 
         deptHeadField = new JTextField(20);
-        deptHeadField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
+        deptHeadField.setFont(new Font("Arial", Font.PLAIN, 14));
         deptHeadField.setForeground(Color.BLACK);
-        deptHeadField.setBackground(new Color(240, 240, 240));
+        deptHeadField.setBackground(Color.WHITE);
+        deptHeadField.setCaretColor(Color.BLACK);
         deptHeadField.setOpaque(true);
-        deptHeadField.setPreferredSize(new Dimension(200, 30));
-        deptHeadField.setEditable(true); // Ensure editable
+        deptHeadField.setPreferredSize(new Dimension(300, 40));
+        deptHeadField.setEditable(false);
+        deptHeadField.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         gbc.gridx = 1;
-        gbc.gridy = 2;
+        gbc.gridy = 5;
+        gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         textFieldsPanel.add(deptHeadField, gbc);
+
+        // Load departments after combo boxes are initialized
+        loadDepartments();
+
+        // Enable/disable fields based on radio button selection
+        selectExistingDeptRadio.addActionListener(e -> {
+            nonStudentDeptComboBox.setEnabled(true);
+            deptNameField.setEditable(false);
+            deptCodeField.setEditable(false);
+            deptHeadField.setEditable(false);
+            textFieldsPanel.revalidate();
+            textFieldsPanel.repaint();
+            logger.info("Select Existing - Textboxes: Name editable={}, size={}; Code editable={}, size={}; Head editable={}, size={}",
+                    deptNameField.isEditable(), deptNameField.getSize(),
+                    deptCodeField.isEditable(), deptCodeField.getSize(),
+                    deptHeadField.isEditable(), deptHeadField.getSize());
+        });
+
+        createNewDeptRadio.addActionListener(e -> {
+            nonStudentDeptComboBox.setEnabled(false);
+            deptNameField.setEditable(true);
+            deptCodeField.setEditable(true);
+            deptHeadField.setEditable(true);
+            deptNameField.requestFocusInWindow();
+            textFieldsPanel.revalidate();
+            textFieldsPanel.repaint();
+            logger.info("Create New - Textboxes: Name editable={}, size={}; Code editable={}, size={}; Head editable={}, size={}",
+                    deptNameField.isEditable(), deptNameField.getSize(),
+                    deptCodeField.isEditable(), deptCodeField.getSize(),
+                    deptHeadField.isEditable(), deptHeadField.getSize());
+        });
 
         departmentPanel.add(dropdownPanel, "DROPDOWN");
         departmentPanel.add(textFieldsPanel, "TEXT_FIELDS");
@@ -269,6 +355,19 @@ public class SignupFrame extends JDialog {
                     cardLayout.show(departmentPanel, "DROPDOWN");
                 } else {
                     cardLayout.show(departmentPanel, "TEXT_FIELDS");
+                    if (createNewDeptRadio.isSelected()) {
+                        nonStudentDeptComboBox.setEnabled(false);
+                        deptNameField.setEditable(true);
+                        deptCodeField.setEditable(true);
+                        deptHeadField.setEditable(true);
+                    } else {
+                        nonStudentDeptComboBox.setEnabled(true);
+                        deptNameField.setEditable(false);
+                        deptCodeField.setEditable(false);
+                        deptHeadField.setEditable(false);
+                    }
+                    textFieldsPanel.revalidate();
+                    textFieldsPanel.repaint();
                 }
                 departmentPanel.revalidate();
                 departmentPanel.repaint();
@@ -316,6 +415,12 @@ public class SignupFrame extends JDialog {
         mainPanel.add(cancelButton, gbc);
 
         add(mainPanel, BorderLayout.CENTER);
+
+        // Log initial textbox state
+        logger.info("Initial Textboxes: Name editable={}, size={}; Code editable={}, size={}; Head editable={}, size={}",
+                deptNameField.isEditable(), deptNameField.getSize(),
+                deptCodeField.isEditable(), deptCodeField.getSize(),
+                deptHeadField.isEditable(), deptHeadField.getSize());
     }
 
     private void addButtonHoverEffect(JButton button) {
@@ -340,30 +445,96 @@ public class SignupFrame extends JDialog {
     private void loadDepartments() {
         try {
             List<Department> departments = departmentDAO.findAll();
-            logger.info("Loaded {} departments", departments.size());
-            departmentComboBox.removeAllItems();
-            if (departments.isEmpty()) {
-                departmentComboBox.addItem(new Department("No departments available", "", null));
-                departmentComboBox.setEnabled(false);
+            logger.info("Loaded {} departments", departments != null ? departments.size() : 0);
+            if (departmentComboBox != null) {
+                departmentComboBox.removeAllItems();
+            }
+            if (nonStudentDeptComboBox != null) {
+                nonStudentDeptComboBox.removeAllItems();
+            }
+            if (departments == null || departments.isEmpty()) {
+                Department placeholder = new Department("No departments available", "", null);
+                if (departmentComboBox != null) {
+                    departmentComboBox.addItem(placeholder);
+                    departmentComboBox.setEnabled(false);
+                }
+                if (nonStudentDeptComboBox != null) {
+                    nonStudentDeptComboBox.addItem(placeholder);
+                    nonStudentDeptComboBox.setEnabled(false);
+                }
+                if (selectExistingDeptRadio != null) {
+                    selectExistingDeptRadio.setEnabled(false);
+                    createNewDeptRadio.setSelected(true);
+                }
+                if (deptNameField != null) deptNameField.setEditable(true);
+                if (deptCodeField != null) deptCodeField.setEditable(true);
+                if (deptHeadField != null) deptHeadField.setEditable(true);
+                if (textFieldsPanel != null) {
+                    textFieldsPanel.revalidate();
+                    textFieldsPanel.repaint();
+                }
             } else {
                 for (Department dept : departments) {
-                    departmentComboBox.addItem(dept);
+                    if (departmentComboBox != null) departmentComboBox.addItem(dept);
+                    if (nonStudentDeptComboBox != null) nonStudentDeptComboBox.addItem(dept);
                 }
-                departmentComboBox.setEnabled(true);
+                if (departmentComboBox != null) departmentComboBox.setEnabled(true);
+                if (nonStudentDeptComboBox != null) nonStudentDeptComboBox.setEnabled(true);
+                if (selectExistingDeptRadio != null) selectExistingDeptRadio.setEnabled(true);
             }
-            departmentComboBox.setRenderer(new DefaultListCellRenderer() {
-                @Override
-                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    if (value instanceof Department) {
-                        setText(((Department) value).getName());
+            if (departmentComboBox != null) {
+                departmentComboBox.setRenderer(new DefaultListCellRenderer() {
+                    @Override
+                    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                        if (value instanceof Department dept) {
+                            setText(dept.getName());
+                        }
+                        return this;
                     }
-                    return this;
-                }
-            });
+                });
+            }
+            if (nonStudentDeptComboBox != null) {
+                nonStudentDeptComboBox.setRenderer(new DefaultListCellRenderer() {
+                    @Override
+                    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                        if (value instanceof Department dept) {
+                            setText(dept.getName());
+                        }
+                        return this;
+                    }
+                });
+            }
+            logger.info("DepartmentComboBox items: {}, enabled: {}; NonStudentComboBox items: {}, enabled: {}",
+                    departmentComboBox != null ? departmentComboBox.getItemCount() : 0,
+                    departmentComboBox != null ? departmentComboBox.isEnabled() : false,
+                    nonStudentDeptComboBox != null ? nonStudentDeptComboBox.getItemCount() : 0,
+                    nonStudentDeptComboBox != null ? nonStudentDeptComboBox.isEnabled() : false);
         } catch (Exception e) {
             logger.error("Error loading departments: {}", e.getMessage(), e);
             JOptionPane.showMessageDialog(this, "Failed to load departments: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            if (departmentComboBox != null) {
+                departmentComboBox.removeAllItems();
+                departmentComboBox.addItem(new Department("No departments available", "", null));
+                departmentComboBox.setEnabled(false);
+            }
+            if (nonStudentDeptComboBox != null) {
+                nonStudentDeptComboBox.removeAllItems();
+                nonStudentDeptComboBox.addItem(new Department("No departments available", "", null));
+                nonStudentDeptComboBox.setEnabled(false);
+            }
+            if (selectExistingDeptRadio != null) {
+                selectExistingDeptRadio.setEnabled(false);
+                createNewDeptRadio.setSelected(true);
+            }
+            if (deptNameField != null) deptNameField.setEditable(true);
+            if (deptCodeField != null) deptCodeField.setEditable(true);
+            if (deptHeadField != null) deptHeadField.setEditable(true);
+            if (textFieldsPanel != null) {
+                textFieldsPanel.revalidate();
+                textFieldsPanel.repaint();
+            }
         }
     }
 
@@ -374,61 +545,95 @@ public class SignupFrame extends JDialog {
         UserRole role = (UserRole) roleComboBox.getSelectedItem();
 
         if (username.isEmpty() || email.isEmpty() || password.isEmpty() || role == null) {
+            logger.warn("Missing required fields: username={}, email={}, password length={}, role={}",
+                    username, email, password.length(), role);
             JOptionPane.showMessageDialog(this, "Please fill all required fields", "Signup Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
+        if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            logger.warn("Invalid email format: {}", email);
+            JOptionPane.showMessageDialog(this, "Invalid email format", "Signup Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (password.length() <2) {
+            logger.warn("Password too short: length={}", password.length());
+            JOptionPane.showMessageDialog(this, "Password must be at least 2 characters", "Signup Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (userDAO.findByUsername(username) != null) {
+            logger.warn("Username already exists: {}", username);
             JOptionPane.showMessageDialog(this, "Username already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (userDAO.findByEmail(email) != null) {
+            logger.warn("Email already exists: {}", email);
             JOptionPane.showMessageDialog(this, "Email already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        Department department;
+        Department department = null;
         if (role == UserRole.STUDENT) {
-            department = (Department) departmentComboBox.getSelectedItem();
-            if (department == null || department.getName().equals("No departments available")) {
+            Object selected = departmentComboBox != null ? departmentComboBox.getSelectedItem() : null;
+            if (selected instanceof Department dept && !dept.getName().equals("No departments available")) {
+                department = dept;
+            } else {
+                logger.warn("Invalid department selection for STUDENT: {}", selected);
                 JOptionPane.showMessageDialog(this, "Please select a valid department", "Signup Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         } else {
-            String deptName = deptNameField.getText().trim();
-            String deptCode = deptCodeField.getText().trim();
-            String deptHead = deptHeadField.getText().trim();
+            if (selectExistingDeptRadio.isSelected()) {
+                Object selected = nonStudentDeptComboBox != null ? nonStudentDeptComboBox.getSelectedItem() : null;
+                if (selected instanceof Department dept && !dept.getName().equals("No departments available")) {
+                    department = dept;
+                } else {
+                    logger.warn("Invalid department selection for non-STUDENT: {}", selected);
+                    JOptionPane.showMessageDialog(this, "Please select a valid department", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } else {
+                String deptName = deptNameField.getText().trim();
+                String deptCode = deptCodeField.getText().trim();
+                String deptHead = deptHeadField.getText().trim();
 
-            if (deptName.isEmpty() || deptCode.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Department name and code are required", "Signup Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+                if (deptName.isEmpty() || deptCode.isEmpty()) {
+                    logger.warn("Missing department fields: name={}, code={}", deptName, deptCode);
+                    JOptionPane.showMessageDialog(this, "Department name and code are required", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-            if (!deptCode.matches("^[A-Za-z0-9]+$")) {
-                JOptionPane.showMessageDialog(this, "Department code must be alphanumeric", "Signup Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+                if (!deptCode.matches("^[A-Za-z0-9]+$")) {
+                    logger.warn("Invalid department code: {}", deptCode);
+                    JOptionPane.showMessageDialog(this, "Department code must be alphanumeric", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-            if (departmentDAO.findByName(deptName) != null) {
-                JOptionPane.showMessageDialog(this, "Department name already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+                if (departmentDAO.findByName(deptName) != null) {
+                    logger.warn("Department name already exists: {}", deptName);
+                    JOptionPane.showMessageDialog(this, "Department name already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-            if (departmentDAO.findByCode(deptCode) != null) {
-                JOptionPane.showMessageDialog(this, "Department code already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+                if (departmentDAO.findByCode(deptCode) != null) {
+                    logger.warn("Department code already exists: {}", deptCode);
+                    JOptionPane.showMessageDialog(this, "Department code already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-            department = new Department(deptName, deptCode, deptHead.isEmpty() ? null : deptHead);
-            try {
-                departmentDAO.save(department);
-                logger.info("Department created: {}", deptName);
-                loadDepartments(); // Refresh dropdown
-            } catch (Exception e) {
-                logger.error("Failed to save department: {}", e.getMessage(), e);
-                JOptionPane.showMessageDialog(this, "Failed to save department: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+                department = new Department(deptName, deptCode, deptHead.isEmpty() ? null : deptHead);
+                try {
+                    departmentDAO.save(department);
+                    logger.info("Department created: {}", deptName);
+                    loadDepartments();
+                } catch (Exception e) {
+                    logger.error("Failed to save department: {}", e.getMessage(), e);
+                    JOptionPane.showMessageDialog(this, "Failed to save department: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
             }
         }
 

@@ -1,6 +1,7 @@
 package org.timeflow.ui;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.timeflow.dao.UserDAO;
 import org.timeflow.entity.User;
 
@@ -165,10 +166,11 @@ public class LoginFrame extends JFrame {
     }
 
     private void handleLogin() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
         User user = userDAO.authenticate(username, password);
-        if (user != null) {
+        if (user != null &&  encoder.matches(password, user.getPassword())) {
             dispose();
             new MainDashboardFrame(user).setVisible(true);
         } else {

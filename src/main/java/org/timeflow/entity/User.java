@@ -3,7 +3,7 @@ package org.timeflow.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.NaturalId;
-
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.time.LocalDateTime;
 
 @Entity
@@ -49,6 +49,16 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
+
+    @PrePersist
+    @PreUpdate
+    private void hashPassword() {
+        if (password != null && !password.startsWith("$2a$")) { // already hashed?
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            password = encoder.encode(password);
+        }
+    }
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -73,5 +83,7 @@ public class User {
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+
+
 }
 
