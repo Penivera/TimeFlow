@@ -67,4 +67,9 @@ public class Course {
 
     public List<Timetable> getTimetables() { return timetables; }
     public void setTimetables(List<Timetable> timetables) { this.timetables = timetables; }
+
+    @Override
+    public String toString() {
+        return name + " (" + code + ")";
+    }
 }

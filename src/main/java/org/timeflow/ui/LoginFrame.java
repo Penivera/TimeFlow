@@ -1,57 +1,26 @@
 package org.timeflow.ui;
 
-import com.formdev.flatlaf.FlatLightLaf;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.timeflow.dao.UserDAO;
-import org.timeflow.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.timeflow.service.AuthenticationService;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class LoginFrame extends JFrame {
+    private static final Logger logger = LoggerFactory.getLogger(LoginFrame.class);
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JButton loginButton;
-    private JButton signupButton;
-    private UserDAO userDAO;
+    private AuthenticationService authService;
 
     public LoginFrame() {
-        userDAO = new UserDAO();
-        setupLookAndFeel();
+        authService = AuthenticationService.getInstance();
         initComponents();
         setTitle("TimeFlow - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 350);
-        setMinimumSize(new Dimension(350, 300));
+        setSize(400, 300);
         setLocationRelativeTo(null);
-        setResizable(true);
-    }
-
-    private void setupLookAndFeel() {
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-            UIManager.put("Button.arc", 10);
-            UIManager.put("Component.arc", 10);
-            UIManager.put("TextField.border", BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Color.BLACK, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-            UIManager.put("PasswordField.border", BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Color.BLACK, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-            UIManager.put("Button.background", Color.BLACK);
-            UIManager.put("Button.foreground", Color.WHITE);
-        } catch (Exception e) {
-            System.err.println("Failed to set FlatLaf look-and-feel: " + e.getMessage());
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
+        setResizable(false);
     }
 
     private void initComponents() {
@@ -61,124 +30,70 @@ public class LoginFrame extends JFrame {
         mainPanel.setBackground(Color.WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
-
-        JLabel titleLabel = new JLabel("TimeFlow Login");
-        titleLabel.setFont(getPreferredFont("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(Color.BLACK);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        mainPanel.add(titleLabel, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel usernameLabel = new JLabel("Username:");
-        usernameLabel.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
-        usernameLabel.setForeground(Color.BLACK);
+        usernameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
+        gbc.gridy = 0;
         mainPanel.add(usernameLabel, gbc);
 
         usernameField = new JTextField(20);
-        usernameField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
-        usernameField.setForeground(Color.BLACK);
-        usernameField.setBackground(new Color(240, 240, 240));
-        usernameField.setOpaque(true);
-        usernameField.setPreferredSize(new Dimension(200, 30));
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
         gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
         mainPanel.add(usernameField, gbc);
 
         JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
-        passwordLabel.setForeground(Color.BLACK);
+        passwordLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 1;
         mainPanel.add(passwordLabel, gbc);
 
         passwordField = new JPasswordField(20);
-        passwordField.setFont(getPreferredFont("Segoe UI", Font.PLAIN, 14));
-        passwordField.setForeground(Color.BLACK);
-        passwordField.setBackground(new Color(240, 240, 240));
-        passwordField.setOpaque(true);
-        passwordField.setPreferredSize(new Dimension(200, 30));
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
         gbc.gridx = 1;
-        gbc.gridy = 2;
+        gbc.gridy = 1;
         mainPanel.add(passwordField, gbc);
 
-        loginButton = new JButton("Login");
-        loginButton.setFont(getPreferredFont("Segoe UI", Font.BOLD, 14));
-        loginButton.setBackground(Color.BLACK);
+        JButton loginButton = new JButton("Login");
+        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        loginButton.setBackground(new Color(7, 8, 9));
         loginButton.setForeground(Color.WHITE);
-        loginButton.setFocusPainted(false);
-        addButtonHoverEffect(loginButton);
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleLogin();
-            }
+        loginButton.addActionListener(e -> handleLogin());
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        mainPanel.add(loginButton, gbc);
+
+        JButton signupButton = new JButton("Sign Up");
+        signupButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        signupButton.setBackground(new Color(7, 8, 9));
+        signupButton.setForeground(Color.WHITE);
+        signupButton.addActionListener(e -> {
+            dispose();
+            new SignupFrame(LoginFrame.this).setVisible(true);
         });
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        mainPanel.add(loginButton, gbc);
-
-        signupButton = new JButton("Sign Up");
-        signupButton.setFont(getPreferredFont("Segoe UI", Font.BOLD, 14));
-        signupButton.setBackground(Color.BLACK);
-        signupButton.setForeground(Color.WHITE);
-        signupButton.setFocusPainted(false);
-        addButtonHoverEffect(signupButton);
-        signupButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new SignupFrame(LoginFrame.this).setVisible(true);
-            }
-        });
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
         mainPanel.add(signupButton, gbc);
 
         add(mainPanel, BorderLayout.CENTER);
     }
 
-    private void addButtonHoverEffect(JButton button) {
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(new Color(51, 51, 51));
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(Color.BLACK);
-            }
-        });
-    }
-
-    private Font getPreferredFont(String fontName, int style, int size) {
-        Font font = new Font(fontName, style, size);
-        return font.getFamily().equals(fontName) ? font : new Font("Arial", style, size);
-    }
-
     private void handleLogin() {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String username = usernameField.getText().trim();
-        String password = new String(passwordField.getPassword());
-        User user = userDAO.authenticate(username, password);
-        if (user != null &&  encoder.matches(password, user.getPassword())) {
+        String password = new String(passwordField.getPassword()).trim();
+        logger.info("Login attempt: username={}", username);
+        if (authService.login(username, password)) {
+            logger.info("Login successful: username={}, role={}", username, authService.getCurrentUser().getRole());
             dispose();
-            new MainDashboardFrame(user).setVisible(true);
+            new MainDashboardFrame().setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, "Invalid credentials", "Login Error", JOptionPane.ERROR_MESSAGE);
+            logger.warn("Login failed: invalid credentials for username={}", username);
+            JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }

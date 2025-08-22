@@ -5,16 +5,19 @@ import org.timeflow.entity.UserRole;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class AuthenticationService extends BaseService {
-
+    private static final AuthenticationService INSTANCE = new AuthenticationService();
     private final BCryptPasswordEncoder passwordEncoder;
     private User currentUser;
 
-    public AuthenticationService() {
+    private AuthenticationService() {
         super();
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    // Login user
+    public static AuthenticationService getInstance() {
+        return INSTANCE;
+    }
+
     public boolean login(String username, String password) {
         try {
             User user = daoFactory.getUserDAO().findByUsername(username);
@@ -31,10 +34,8 @@ public class AuthenticationService extends BaseService {
         }
     }
 
-    // Register new user
     public User registerUser(String username, String email, String password, UserRole role, Long departmentId) {
         try {
-            // Check if username or email already exists
             if (daoFactory.getUserDAO().findByUsername(username) != null) {
                 throw new RuntimeException("Username already exists");
             }
@@ -42,7 +43,6 @@ public class AuthenticationService extends BaseService {
                 throw new RuntimeException("Email already exists");
             }
 
-            // Create new user
             User user = new User();
             user.setUsername(username);
             user.setEmail(email);
@@ -53,14 +53,12 @@ public class AuthenticationService extends BaseService {
             User savedUser = daoFactory.getUserDAO().save(user);
             logger.info("New user registered: {} with role {}", username, role);
             return savedUser;
-
         } catch (Exception e) {
             logger.error("Error registering user: {}", username, e);
             throw new RuntimeException("Failed to register user", e);
         }
     }
 
-    // Change password
     public boolean changePassword(String oldPassword, String newPassword) {
         try {
             if (currentUser != null && verifyPassword(oldPassword, currentUser.getPassword())) {
@@ -76,7 +74,6 @@ public class AuthenticationService extends BaseService {
         }
     }
 
-    // Logout
     public void logout() {
         if (currentUser != null) {
             logger.info("User logged out: {}", currentUser.getUsername());
@@ -84,17 +81,14 @@ public class AuthenticationService extends BaseService {
         }
     }
 
-    // Get current user
     public User getCurrentUser() {
         return currentUser;
     }
 
-    // Check if user has role
     public boolean hasRole(UserRole role) {
         return currentUser != null && currentUser.getRole() == role;
     }
 
-    // Check permissions
     public boolean canManageTimetables() {
         return hasRole(UserRole.ADMIN) || hasRole(UserRole.EXAMS_OFFICER) || hasRole(UserRole.LECTURER);
     }
@@ -107,7 +101,6 @@ public class AuthenticationService extends BaseService {
         return hasRole(UserRole.ADMIN) || hasRole(UserRole.EXAMS_OFFICER);
     }
 
-    // Password utilities
     private String hashPassword(String password) {
         return passwordEncoder.encode(password);
     }
@@ -116,4 +109,3 @@ public class AuthenticationService extends BaseService {
         return passwordEncoder.matches(password, hashedPassword);
     }
 }
-

@@ -9,9 +9,7 @@
         <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/timeflow_db</property>
         <property name="hibernate.connection.username">postgres</property>
         <property name="hibernate.connection.password">admin</property>
-        
-        <!-- Hibernate dialect -->
-        <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+
         
         <!-- Connection pool settings -->
         <property name="hibernate.connection.pool_size">10</property>

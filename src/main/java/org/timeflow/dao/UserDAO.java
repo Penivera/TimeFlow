@@ -1,5 +1,6 @@
 package org.timeflow.dao;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.timeflow.entity.User;
 import org.timeflow.entity.UserRole;
 import org.timeflow.entity.Department;
@@ -38,10 +39,11 @@ public class UserDAO extends BaseDAO<User, Long> {
     public User authenticate(String username, String password) {
         try (Session session = sessionFactory.openSession()) {
             User user = session.bySimpleNaturalId(User.class).load(username);
-
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
             // Note: In production, use proper password hashing verification
-            if (user != null && user.getPassword().equals(password)) {
+            if (user != null && encoder.matches(password,user.getPassword())) {
+                logger.info("{} authenticated",user.getUsername());
                 return user;
             }
             logger.info("Incorrect username or password");

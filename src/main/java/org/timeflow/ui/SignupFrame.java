@@ -37,9 +37,11 @@ public class SignupFrame extends JDialog {
     private JPanel departmentPanel;
     private CardLayout cardLayout;
     private JPanel textFieldsPanel;
+    private JFrame Parent;
 
     public SignupFrame(JFrame parent) {
         super(parent, true);
+        this.Parent = parent;
         userDAO = new UserDAO();
         departmentDAO = new DepartmentDAO();
         setupLookAndFeel();
@@ -649,7 +651,11 @@ public class SignupFrame extends JDialog {
             userDAO.save(user);
             logger.info("User created: {}", username);
             JOptionPane.showMessageDialog(this, "Signup successful! Please log in.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            Parent.setVisible(true);
             dispose();
+
+
+
         } catch (Exception e) {
             logger.error("Signup failed: {}", e.getMessage(), e);
             JOptionPane.showMessageDialog(this, "Signup failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

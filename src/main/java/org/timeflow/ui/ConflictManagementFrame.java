@@ -34,7 +34,7 @@ public class ConflictManagementFrame extends JFrame {
 
         JLabel titleLabel = new JLabel("Timetable Conflicts");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(0, 102, 204));
+        titleLabel.setForeground(new Color(7, 8, 9));
         mainPanel.add(titleLabel, BorderLayout.NORTH);
 
         String[] columns = {"Course", "Day", "Time", "Room", "Conflict Type"};
@@ -75,7 +75,7 @@ public class ConflictManagementFrame extends JFrame {
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(new Color(0, 102, 204));
+        button.setBackground(new Color(7, 8, 9));
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         return button;

@@ -1,6 +1,7 @@
 package org.timeflow.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +14,7 @@ public class Semester {
     private Long id;
 
     @Column(nullable = false)
+    @NaturalId
     private String name;
 
     @Column(name = "start_date")
@@ -62,4 +64,9 @@ public class Semester {
 
     public List<Timetable> getTimetables() { return timetables; }
     public void setTimetables(List<Timetable> timetables) { this.timetables = timetables; }
+
+    @Override
+    public String toString() {
+        return name + " (" + academicYear + ")";
+    }
 }

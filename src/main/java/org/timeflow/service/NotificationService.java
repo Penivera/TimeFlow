@@ -1,4 +1,5 @@
 package org.timeflow.service;
+
 import org.timeflow.entity.*;
 import javax.mail.*;
 import javax.mail.internet.*;
@@ -8,7 +9,6 @@ import org.timeflow.util.*;
 
 public class NotificationService extends BaseService {
 
-    // Email configuration
     private Session getEmailSession() {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -24,221 +24,198 @@ public class NotificationService extends BaseService {
         });
     }
 
-    // Notify students about approved timetable
     public void notifyTimetableApproved(Timetable timetable) {
         try {
-            // Get all students in the department and level
             List<User> students = daoFactory.getUserDAO()
                     .findStudentsByDepartmentAndLevel(
                             timetable.getCourse().getDepartment(),
                             timetable.getCourse().getLevel()
                     );
-        } finally {
-
-        }
-    }
-
-        String createConflictEmailBody(Conflict conflict, String perspective){
-            return String.format("""
-                            <html>
-                            <body>
-                                <h2>Timetable Conflict Detected</h2>
-                                <p>Dear Lecturer,</p>
-                                <p>A scheduling conflict has been detected involving %s.</p>
-                            
-                                <div style="border: 1px solid #ffcc99; padding: 10px; margin: 10px 0; background-color: #fff8f0;">
-                                    <h3>Conflict Details:</h3>
-                                    <p><strong>Conflict Type:</strong> %s</p>
-                                    <p><strong>Detected:</strong> %s</p>
-                                </div>
-                            
-                                <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
-                                    <h3>Course 1: %s (%s)</h3>
-                                    <p><strong>Day:</strong> %s | <strong>Time:</strong> %s - %s | <strong>Room:</strong> %s</p>
-                                    <p><strong>Lecturer:</strong> %s</p>
-                                </div>
-                            
-                                <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
-                                    <h3>Course 2: %s (%s)</h3>
-                                    <p><strong>Day:</strong> %s | <strong>Time:</strong> %s - %s | <strong>Room:</strong> %s</p>
-                                    <p><strong>Lecturer:</strong> %s</p>
-                                </div>
-                            
-                                <p>Please coordinate with the other lecturer and the exams office to resolve this conflict.</p>
-                                <p>You can appeal this conflict if you believe there's an error or special arrangement.</p>
-                            
-                                <p>Best regards,<br>
-                                TimeFlow - Academic Scheduling System</p>
-                            </body>
-                            </html>
-                            """,
-                    perspective,
-                    conflict.getType(),
-                    conflict.getDetectedAt(),
-                    conflict.getTimetable1().getCourse().getName(),
-                    conflict.getTimetable1().getCourse().getCode(),
-                    conflict.getTimetable1().getDayOfWeek(),
-                    conflict.getTimetable1().getStartTime(),
-                    conflict.getTimetable1().getEndTime(),
-                    conflict.getTimetable1().getRoom(),
-                    conflict.getTimetable1().getCourse().getLecturer().getUsername(),
-                    conflict.getTimetable2().getCourse().getName(),
-                    conflict.getTimetable2().getCourse().getCode(),
-                    conflict.getTimetable2().getDayOfWeek(),
-                    conflict.getTimetable2().getStartTime(),
-                    conflict.getTimetable2().getEndTime(),
-                    conflict.getTimetable2().getRoom(),
-                    conflict.getTimetable2().getCourse().getLecturer().getUsername()
-            );
-        }
-
-        String createConflictOfficerEmailBody (Conflict conflict){
-            return String.format("""
-                            <html>
-                            <body>
-                                <h2>Timetable Conflict Requires Review</h2>
-                                <p>Dear Exams Officer,</p>
-                                <p>A timetable conflict has been detected and requires your review.</p>
-                            
-                                <div style="border: 1px solid #ff9999; padding: 10px; margin: 10px 0; background-color: #fff0f0;">
-                                    <h3>Conflict Summary:</h3>
-                                    <p><strong>Type:</strong> %s</p>
-                                    <p><strong>Status:</strong> %s</p>
-                                    <p><strong>Detected:</strong> %s</p>
-                                </div>
-                            
-                                <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
-                                    <h3>Conflicting Schedules:</h3>
-                                    <table border="1" style="border-collapse: collapse; width: 100%%;">
-                                        <tr style="background-color: #f0f0f0;">
-                                            <th>Course</th>
-                                            <th>Lecturer</th>
-                                            <th>Day</th>
-                                            <th>Time</th>
-                                            <th>Room</th>
-                                        </tr>
-                                        <tr>
-                                            <td>%s (%s)</td>
-                                            <td>%s</td>
-                                            <td>%s</td>
-                                            <td>%s - %s</td>
-                                            <td>%s</td>
-                                        </tr>
-                                        <tr>
-                                            <td>%s (%s)</td>
-                                            <td>%s</td>
-                                            <td>%s</td>
-                                            <td>%s - %s</td>
-                                            <td>%s</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            
-                                <p>Please log into TimeFlow to review and resolve this conflict.</p>
-                            
-                                <p>Best regards,<br>
-                                TimeFlow - Academic Scheduling System</p>
-                            </body>
-                            </html>
-                            """,
-                    conflict.getType(),
-                    conflict.getStatus(),
-                    conflict.getDetectedAt(),
-                    conflict.getTimetable1().getCourse().getName(),
-                    conflict.getTimetable1().getCourse().getCode(),
-                    conflict.getTimetable1().getCourse().getLecturer().getUsername(),
-                    conflict.getTimetable1().getDayOfWeek(),
-                    conflict.getTimetable1().getStartTime(),
-                    conflict.getTimetable1().getEndTime(),
-                    conflict.getTimetable1().getRoom(),
-                    conflict.getTimetable2().getCourse().getName(),
-                    conflict.getTimetable2().getCourse().getCode(),
-                    conflict.getTimetable2().getCourse().getLecturer().getUsername(),
-                    conflict.getTimetable2().getDayOfWeek(),
-                    conflict.getTimetable2().getStartTime(),
-                    conflict.getTimetable2().getEndTime(),
-                    conflict.getTimetable2().getRoom()
-            );
-        }
-
-        String createCompleteTimetableEmailBody (List < Timetable > timetables, Semester semester, Department department,
-        int level){
-            StringBuilder tableRows = new StringBuilder();
-
-            for (Timetable tt : timetables) {
-                tableRows.append(String.format("""
-                                <tr>
-                                    <td>%s</td>
-                                    <td>%s (%s)</td>
-                                    <td>%s</td>
-                                    <td>%s - %s</td>
-                                    <td>%s</td>
-                                    <td>%s</td>
-                                </tr>
-                                """,
-                        tt.getDayOfWeek(),
-                        tt.getCourse().getName(),
-                        tt.getCourse().getCode(),
-                        tt.getStartTime(),
-                        tt.getEndTime(),
-                        tt.getRoom(),
-                        tt.getType()
+            Session session = getEmailSession();
+            for (User student : students) {
+                MimeMessage message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(Config.EMAIL));
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(student.getEmail()));
+                message.setSubject("Timetable Approved for " + timetable.getCourse().getName());
+                message.setText(String.format(
+                        "Dear %s,\n\nThe timetable for %s (%s) has been approved.\n\n" +
+                                "Details:\nDay: %s\nTime: %s - %s\nRoom: %s\nType: %s\nSemester: %s\n\n" +
+                                "Best regards,\nTimeFlow",
+                        student.getUsername(),
+                        timetable.getCourse().getName(),
+                        timetable.getCourse().getCode(),
+                        timetable.getDayOfWeek(),
+                        timetable.getStartTime(),
+                        timetable.getEndTime(),
+                        timetable.getRoom(),
+                        timetable.getType(),
+                        timetable.getSemester().getName()
                 ));
+                Transport.send(message);
+                logger.info("Sent approval notification to {}", student.getEmail());
             }
-
-            return String.format("""
-                            <html>
-                            <body>
-                                <h2>Complete Timetable - %s</h2>
-                                <p>Dear Student,</p>
-                                <p>Please find below your complete timetable for <strong>%s %s, Level %d</strong>.</p>
-                            
-                                <table border="1" style="border-collapse: collapse; width: 100%%; margin: 20px 0;">
-                                    <tr style="background-color: #f0f0f0;">
-                                        <th>Day</th>
-                                        <th>Course</th>
-                                        <th>Time</th>
-                                        <th>Room</th>
-                                        <th>Type</th>
-                                    </tr>
-                                    %s
-                                </table>
-                            
-                                <div style="border: 1px solid #ccffcc; padding: 10px; margin: 10px 0; background-color: #f0fff0;">
-                                    <h3>Important Notes:</h3>
-                                    <ul>
-                                        <li>This timetable is now official and approved by the exams office</li>
-                                        <li>Please save this email for your records</li>
-                                        <li>Any changes will be communicated separately</li>
-                                        <li>Ensure you attend all scheduled classes and examinations</li>
-                                    </ul>
-                                </div>
-                            
-                                <p>For any questions or concerns, please contact the exams office.</p>
-                            
-                                <p>Best regards,<br>
-                                TimeFlow - Academic Scheduling System<br>
-                                %s</p>
-                            </body>
-                            </html>
-                            """,
-                    semester.getName(),
-                    department.getName(),
-                    semester.getName(),
-                    level,
-                    tableRows.toString(),
-                    department.getName()
-            );
-        }
-
-        public void notifyConflicts(List<Conflict> conflicts) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'notifyConflicts'");
-        }
-
-        public void notifyTimetableRejected(Timetable timetable, String reason) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'notifyTimetableRejected'");
+        } catch (Exception e) {
+            logger.error("Failed to send timetable approval notification", e);
         }
     }
 
+    public void notifyConflicts(List<Conflict> conflicts) {
+        try {
+            Session session = getEmailSession();
+            for (Conflict conflict : conflicts) {
+                // Notify lecturer 1
+                User lecturer1 = conflict.getTimetable1().getCourse().getLecturer();
+                if (lecturer1 != null) {
+                    MimeMessage message = new MimeMessage(session);
+                    message.setFrom(new InternetAddress(Config.EMAIL));
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(lecturer1.getEmail()));
+                    message.setSubject("Timetable Conflict Detected");
+                    message.setText(createConflictEmailBody(conflict, lecturer1.getUsername()));
+                    Transport.send(message);
+                    logger.info("Sent conflict notification to {}", lecturer1.getEmail());
+                }
+                // Notify lecturer 2
+                User lecturer2 = conflict.getTimetable2().getCourse().getLecturer();
+                if (lecturer2 != null) {
+                    MimeMessage message = new MimeMessage(session);
+                    message.setFrom(new InternetAddress(Config.EMAIL));
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(lecturer2.getEmail()));
+                    message.setSubject("Timetable Conflict Detected");
+                    message.setText(createConflictEmailBody(conflict, lecturer2.getUsername()));
+                    Transport.send(message);
+                    logger.info("Sent conflict notification to {}", lecturer2.getEmail());
+                }
+                // Notify exams officer
+                List<User> officers = daoFactory.getUserDAO().findByRole(UserRole.EXAMS_OFFICER);
+                for (User officer : officers) {
+                    MimeMessage message = new MimeMessage(session);
+                    message.setFrom(new InternetAddress(Config.EMAIL));
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(officer.getEmail()));
+                    message.setSubject("Timetable Conflict Requires Review");
+                    message.setText(createConflictOfficerEmailBody(conflict));
+                    Transport.send(message);
+                    logger.info("Sent conflict notification to exams officer {}", officer.getEmail());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send conflict notifications", e);
+        }
+    }
+
+    public void notifyTimetableRejected(Timetable timetable, String reason) {
+        try {
+            User lecturer = timetable.getCourse().getLecturer();
+            if (lecturer != null) {
+                Session session = getEmailSession();
+                MimeMessage message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(Config.EMAIL));
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(lecturer.getEmail()));
+                message.setSubject("Timetable Rejected for " + timetable.getCourse().getName());
+                message.setText(String.format(
+                        "Dear %s,\n\nThe timetable for %s (%s) was rejected.\n\n" +
+                                "Reason: %s\n\nPlease revise and resubmit.\n\n" +
+                                "Best regards,\nTimeFlow",
+                        lecturer.getUsername(),
+                        timetable.getCourse().getName(),
+                        timetable.getCourse().getCode(),
+                        reason
+                ));
+                Transport.send(message);
+                logger.info("Sent rejection notification to {}", lecturer.getEmail());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send timetable rejection notification", e);
+        }
+    }
+
+    String createConflictEmailBody(Conflict conflict, String perspective) {
+        return String.format(
+                "Dear %s,\n\nA scheduling conflict has been detected.\n\n" +
+                        "Conflict Details:\n" +
+                        "Type: %s\nDetected: %s\n\n" +
+                        "Course 1: %s (%s)\nDay: %s | Time: %s - %s | Room: %s\nLecturer: %s\n\n" +
+                        "Course 2: %s (%s)\nDay: %s | Time: %s - %s | Room: %s\nLecturer: %s\n\n" +
+                        "Please coordinate with the other lecturer and the exams office to resolve this conflict.\n\n" +
+                        "Best regards,\nTimeFlow",
+                perspective,
+                conflict.getType(),
+                conflict.getDetectedAt(),
+                conflict.getTimetable1().getCourse().getName(),
+                conflict.getTimetable1().getCourse().getCode(),
+                conflict.getTimetable1().getDayOfWeek(),
+                conflict.getTimetable1().getStartTime(),
+                conflict.getTimetable1().getEndTime(),
+                conflict.getTimetable1().getRoom(),
+                conflict.getTimetable1().getCourse().getLecturer().getUsername(),
+                conflict.getTimetable2().getCourse().getName(),
+                conflict.getTimetable2().getCourse().getCode(),
+                conflict.getTimetable2().getDayOfWeek(),
+                conflict.getTimetable2().getStartTime(),
+                conflict.getTimetable2().getEndTime(),
+                conflict.getTimetable2().getRoom(),
+                conflict.getTimetable2().getCourse().getLecturer().getUsername()
+        );
+    }
+
+    String createConflictOfficerEmailBody(Conflict conflict) {
+        return String.format(
+                "Dear Exams Officer,\n\nA timetable conflict requires your review.\n\n" +
+                        "Conflict Summary:\nType: %s\nStatus: %s\nDetected: %s\n\n" +
+                        "Conflicting Schedules:\n" +
+                        "Course\tLecturer\tDay\tTime\tRoom\n" +
+                        "%s (%s)\t%s\t%s\t%s - %s\t%s\n" +
+                        "%s (%s)\t%s\t%s\t%s - %s\t%s\n\n" +
+                        "Please log into TimeFlow to review and resolve this conflict.\n\n" +
+                        "Best regards,\nTimeFlow",
+                conflict.getType(),
+                conflict.getStatus(),
+                conflict.getDetectedAt(),
+                conflict.getTimetable1().getCourse().getName(),
+                conflict.getTimetable1().getCourse().getCode(),
+                conflict.getTimetable1().getCourse().getLecturer().getUsername(),
+                conflict.getTimetable1().getDayOfWeek(),
+                conflict.getTimetable1().getStartTime(),
+                conflict.getTimetable1().getEndTime(),
+                conflict.getTimetable1().getRoom(),
+                conflict.getTimetable2().getCourse().getName(),
+                conflict.getTimetable2().getCourse().getCode(),
+                conflict.getTimetable2().getCourse().getLecturer().getUsername(),
+                conflict.getTimetable2().getDayOfWeek(),
+                conflict.getTimetable2().getStartTime(),
+                conflict.getTimetable2().getEndTime(),
+                conflict.getTimetable2().getRoom()
+        );
+    }
+
+    String createCompleteTimetableEmailBody(List<Timetable> timetables, Semester semester, Department department, int level) {
+        StringBuilder tableRows = new StringBuilder();
+        for (Timetable tt : timetables) {
+            tableRows.append(String.format(
+                    "%s\t%s (%s)\t%s - %s\t%s\t%s\n",
+                    tt.getDayOfWeek(),
+                    tt.getCourse().getName(),
+                    tt.getCourse().getCode(),
+                    tt.getStartTime(),
+                    tt.getEndTime(),
+                    tt.getRoom(),
+                    tt.getType()
+            ));
+        }
+        return String.format(
+                "Dear Student,\n\nPlease find below your complete timetable for %s %s, Level %d.\n\n" +
+                        "Day\tCourse\tTime\tRoom\tType\n%s\n\n" +
+                        "Important Notes:\n" +
+                        "- This timetable is now official and approved by the exams office\n" +
+                        "- Please save this email for your records\n" +
+                        "- Any changes will be communicated separately\n" +
+                        "- Ensure you attend all scheduled classes and examinations\n\n" +
+                        "For any questions or concerns, please contact the exams office.\n\n" +
+                        "Best regards,\nTimeFlow\n%s",
+                department.getName(),
+                semester.getName(),
+                level,
+                tableRows.toString(),
+                department.getName()
+        );
+    }
+}
