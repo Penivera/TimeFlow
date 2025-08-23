@@ -32,7 +32,8 @@ public class TimetableDAO extends BaseDAO<Timetable, Long> {
         );
     }
 
-    public List<Timetable> findBySemester(Semester semester) {
+    // MODIFIED: Parameter changed to SemesterType
+    public List<Timetable> findBySemester(SemesterType semester) {
         return executeQuery(
                 "FROM Timetable t WHERE t.semester = :semester ORDER BY t.dayOfWeek, t.startTime",
                 Timetable.class,
@@ -40,7 +41,8 @@ public class TimetableDAO extends BaseDAO<Timetable, Long> {
         );
     }
 
-    public List<Timetable> findByDepartmentAndSemester(Department department, Semester semester) {
+    // MODIFIED: Parameter changed to SemesterType
+    public List<Timetable> findByDepartmentAndSemester(Department department, SemesterType semester) {
         return executeQuery(
                 "FROM Timetable t " +
                         "WHERE t.course.department = :department " +
@@ -54,7 +56,7 @@ public class TimetableDAO extends BaseDAO<Timetable, Long> {
         );
     }
 
-    public List<Timetable> findApprovedTimetables(Department department, int level, Semester semester) {
+    public List<Timetable> findApprovedTimetables(Department department, int level, SemesterType semester) {
         return executeQuery(
                 "FROM Timetable t " +
                         "WHERE t.course.department = :department " +
@@ -80,7 +82,7 @@ public class TimetableDAO extends BaseDAO<Timetable, Long> {
         );
     }
 
-    public List<Timetable> findByLecturer(User lecturer, Semester semester) {
+    public List<Timetable> findByLecturer(User lecturer, SemesterType semester) {
         return executeQuery(
                 "FROM Timetable t " +
                         "WHERE t.course.lecturer = :lecturer " +
@@ -94,17 +96,16 @@ public class TimetableDAO extends BaseDAO<Timetable, Long> {
         );
     }
 
+    // MODIFIED: Parameter changed to SemesterType
     public List<Timetable> findConflictingTimetables(DayOfWeek dayOfWeek, LocalTime startTime,
                                                      LocalTime endTime, String room,
-                                                     Semester semester, Long excludeId) {
+                                                     SemesterType semester, Long excludeId) {
         String hql =
                 "FROM Timetable t " +
                         "WHERE t.semester = :semester " +
                         "AND t.dayOfWeek = :dayOfWeek " +
-                        "AND (" +
-                        "(t.startTime < :endTime AND t.endTime > :startTime) " +
-                        "OR t.room = :room" +
-                        ") " +
+                        "AND t.startTime < :endTime AND t.endTime > :startTime " +
+                        "AND t.room = :room " + // This was an OR, should be AND for true conflict
                         "AND t.status != :rejectedStatus" +
                         (excludeId != null ? " AND t.id != :excludeId" : "");
 
@@ -125,9 +126,10 @@ public class TimetableDAO extends BaseDAO<Timetable, Long> {
         );
     }
 
+    // MODIFIED: Parameter changed to SemesterType
     public List<Timetable> findLecturerConflicts(User lecturer, DayOfWeek dayOfWeek,
                                                  LocalTime startTime, LocalTime endTime,
-                                                 Semester semester, Long excludeId) {
+                                                 SemesterType semester, Long excludeId) {
         String hql =
                 "FROM Timetable t " +
                         "WHERE t.course.lecturer = :lecturer " +
@@ -173,7 +175,8 @@ public class TimetableDAO extends BaseDAO<Timetable, Long> {
         );
     }
 
-    public List<Object[]> getTimetableStats(Semester semester) {
+    // MODIFIED: Parameter changed to SemesterType
+    public List<Object[]> getTimetableStats(SemesterType semester) {
         return executeQuery(
                 "SELECT d.name, t.status, COUNT(t.id) " +
                         "FROM Timetable t " +

@@ -145,12 +145,18 @@ public class TimetableService extends BaseService {
     }
 
     // Get timetables for student view
+    // In TimetableService.java, replace the getStudentTimetables method
+
     public List<Timetable> getStudentTimetables(User student) {
         try {
+            // Simple logic to determine current semester
+            int month = java.time.LocalDate.now().getMonthValue();
+            SemesterType currentSemester = (month >= 2 && month <= 7) ? SemesterType.SECOND_SEMESTER : SemesterType.FIRST_SEMESTER;
+
             return daoFactory.getTimetableDAO().findApprovedTimetables(
                     student.getDepartment(),
                     getCurrentLevel(student), // You'll need to implement this method
-                    daoFactory.getSemesterDAO().getCurrentSemester());
+                    currentSemester);
         } catch (Exception e) {
             logger.error("Error getting student timetables for: {}", student.getUsername(), e);
             throw new RuntimeException("Failed to get student timetables", e);
@@ -158,11 +164,18 @@ public class TimetableService extends BaseService {
     }
 
     // Get timetables for lecturer
+    // In TimetableService.java
+
     public List<Timetable> getLecturerTimetables(User lecturer) {
         try {
+            // --- MODIFIED: Added logic to determine the current semester ---
+            // This mirrors the logic we used in getStudentTimetables
+            int month = java.time.LocalDate.now().getMonthValue();
+            SemesterType currentSemester = (month >= 2 && month <= 7) ? SemesterType.SECOND_SEMESTER : SemesterType.FIRST_SEMESTER;
+
             return daoFactory.getTimetableDAO().findByLecturer(
                     lecturer,
-                    daoFactory.getSemesterDAO().getCurrentSemester());
+                    currentSemester); // Pass the determined current semester
         } catch (Exception e) {
             logger.error("Error getting lecturer timetables for: {}", lecturer.getUsername(), e);
             throw new RuntimeException("Failed to get lecturer timetables", e);

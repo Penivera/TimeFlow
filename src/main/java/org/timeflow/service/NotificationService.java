@@ -24,6 +24,8 @@ public class NotificationService extends BaseService {
         });
     }
 
+    // In NotificationService.java
+
     public void notifyTimetableApproved(Timetable timetable) {
         try {
             List<User> students = daoFactory.getUserDAO()
@@ -44,12 +46,12 @@ public class NotificationService extends BaseService {
                         student.getUsername(),
                         timetable.getCourse().getName(),
                         timetable.getCourse().getCode(),
-                        timetable.getDayOfWeek(),
+                        timetable.getSpecificDate() != null ? timetable.getSpecificDate() : timetable.getDayOfWeek(), // Handle single-day events
                         timetable.getStartTime(),
                         timetable.getEndTime(),
                         timetable.getRoom(),
                         timetable.getType(),
-                        timetable.getSemester().getName()
+                        timetable.getSemester().toString() // MODIFIED: Changed .getName() to .toString()
                 ));
                 Transport.send(message);
                 logger.info("Sent approval notification to {}", student.getEmail());
