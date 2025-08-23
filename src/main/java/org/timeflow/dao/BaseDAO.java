@@ -77,4 +77,35 @@ public abstract class BaseDAO<T, ID extends Serializable> {
             throw new RuntimeException("Failed to find all entities", e);
         }
     }
+
+    // --- START: ADD THESE TWO METHODS ---
+
+    // Delete operation
+    public void delete(T entity) {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            session.remove(entity);
+            transaction.commit();
+            logger.info("Entity deleted successfully: {}", entity.getClass().getSimpleName());
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            logger.error("Error deleting entity: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to delete entity", e);
+        }
+    }
+
+    // Delete by ID operation
+    public void deleteById(ID id) {
+        T entity = findById(id);
+        if (entity != null) {
+            delete(entity);
+        } else {
+            logger.warn("Attempted to delete non-existent entity with id: {}", id);
+        }
+    }
+
+    // --- END: ADD THESE TWO METHODS ---
 }

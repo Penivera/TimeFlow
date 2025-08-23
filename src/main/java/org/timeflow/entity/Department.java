@@ -86,4 +86,18 @@ public class Department {
     public void setCourses(List<Course> courses) {
         this.courses = courses;
     }
+    // In Department.java, add these methods at the end of the class
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Department that = (Department) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
