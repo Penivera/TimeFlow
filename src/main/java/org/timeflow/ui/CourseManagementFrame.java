@@ -254,10 +254,28 @@ public class CourseManagementFrame extends JFrame {
         dialog.setVisible(true);
     }
 
+// In CourseManagementFrame.java
+
     private void loadCourses() {
         tableModel.setRowCount(0);
-        List<Course> courses = courseDAO.findByDepartment(user.getDepartment());
-        logger.info("Loaded {} courses for department: {}", courses.size(), user.getDepartment().getName());
+        List<Course> courses;
+
+        // Check if the current user is an Admin
+        if (AuthenticationService.getInstance().hasRole(UserRole.ADMIN)) {
+            logger.info("Admin user detected, loading all courses.");
+            courses = courseDAO.findAll(); // Fetch all courses for the admin
+        } else {
+            // Original logic for other users with a department
+            Department userDept = user.getDepartment();
+            if (userDept == null) {
+                logger.warn("User {} has no department, cannot load courses.", user.getUsername());
+                JOptionPane.showMessageDialog(this, "Your user profile does not have a department assigned.", "Error", JOptionPane.ERROR_MESSAGE);
+                return; // Exit if the user has no department
+            }
+            logger.info("Loading courses for department: {}", userDept.getName());
+            courses = courseDAO.findByDepartment(userDept);
+        }
+
         for (Course c : courses) {
             tableModel.addRow(new Object[]{
                     c.getCode(),

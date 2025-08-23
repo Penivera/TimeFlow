@@ -208,21 +208,38 @@ public class TimetableFrame extends JDialog {
         add(mainPanel, BorderLayout.CENTER);
     }
 
+
+
     private void loadCourses() {
         List<Course> courses;
-        if (user.getRole() == UserRole.LECTURER) {
+        UserRole userRole = user.getRole();
+
+        // Determine which courses to load based on the user's role
+        if (userRole == UserRole.LECTURER) {
             courses = courseDAO.findByLecturer(user);
             logger.info("Loaded {} courses for lecturer: {}", courses.size(), user.getUsername());
+        } else if (userRole == UserRole.ADMIN) {
+            // Admin should see all courses
+            courses = courseDAO.findAll();
+            logger.info("Loaded {} courses for admin user.", courses.size());
         } else {
-            courses = courseDAO.findByDepartment(user.getDepartment());
-            logger.info("Loaded {} courses for department: {}", courses.size(), user.getDepartment().getName());
+            // Other roles (like Exams Officer) see courses by their department
+            Department userDept = user.getDepartment();
+            if (userDept == null) {
+                logger.warn("User {} has no department, cannot load courses.", user.getUsername());
+                courses = List.of(); // Empty list
+            } else {
+                courses = courseDAO.findByDepartment(userDept);
+                logger.info("Loaded {} courses for department: {}", courses.size(), userDept.getName());
+            }
         }
+
         courseComboBox.removeAllItems();
         if (courses.isEmpty()) {
             logger.warn("No courses found for user: {}", user.getUsername());
             courseComboBox.addItem(new Course("No courses available", "", 0, null, null, 0));
             courseComboBox.setEnabled(false);
-            JOptionPane.showMessageDialog(this, "No courses available. Please contact the admin.", "Warning", JOptionPane.WARNING_MESSAGE);
+            // Avoid showing a pop-up here as it can be annoying; disabling is enough.
         } else {
             for (Course course : courses) {
                 courseComboBox.addItem(course);

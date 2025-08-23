@@ -10,7 +10,7 @@ public class Conflict {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "timetable_id_1")
     private Timetable timetable1;
 
@@ -30,7 +30,7 @@ public class Conflict {
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "resolved_by")
     private User resolvedBy;
 
@@ -38,7 +38,8 @@ public class Conflict {
     private ConflictType type;
 
     // Constructors
-    public Conflict() {}
+    public Conflict() {
+    }
 
     public Conflict(Timetable timetable1, Timetable timetable2, ConflictType type) {
         this.timetable1 = timetable1;
@@ -49,30 +50,75 @@ public class Conflict {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Timetable getTimetable1() { return timetable1; }
-    public void setTimetable1(Timetable timetable1) { this.timetable1 = timetable1; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Timetable getTimetable2() { return timetable2; }
-    public void setTimetable2(Timetable timetable2) { this.timetable2 = timetable2; }
+    public Timetable getTimetable1() {
+        return timetable1;
+    }
 
-    public ConflictStatus getStatus() { return status; }
-    public void setStatus(ConflictStatus status) { this.status = status; }
+    public void setTimetable1(Timetable timetable1) {
+        this.timetable1 = timetable1;
+    }
 
-    public String getResolutionNotes() { return resolutionNotes; }
-    public void setResolutionNotes(String resolutionNotes) { this.resolutionNotes = resolutionNotes; }
+    public Timetable getTimetable2() {
+        return timetable2;
+    }
 
-    public LocalDateTime getDetectedAt() { return detectedAt; }
-    public void setDetectedAt(LocalDateTime detectedAt) { this.detectedAt = detectedAt; }
+    public void setTimetable2(Timetable timetable2) {
+        this.timetable2 = timetable2;
+    }
 
-    public LocalDateTime getResolvedAt() { return resolvedAt; }
-    public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }
+    public ConflictStatus getStatus() {
+        return status;
+    }
 
-    public User getResolvedBy() { return resolvedBy; }
-    public void setResolvedBy(User resolvedBy) { this.resolvedBy = resolvedBy; }
+    public void setStatus(ConflictStatus status) {
+        this.status = status;
+    }
 
-    public ConflictType getType() { return type; }
-    public void setType(ConflictType type) { this.type = type; }
+    public String getResolutionNotes() {
+        return resolutionNotes;
+    }
+
+    public void setResolutionNotes(String resolutionNotes) {
+        this.resolutionNotes = resolutionNotes;
+    }
+
+    public LocalDateTime getDetectedAt() {
+        return detectedAt;
+    }
+
+    public void setDetectedAt(LocalDateTime detectedAt) {
+        this.detectedAt = detectedAt;
+    }
+
+    public LocalDateTime getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public void setResolvedAt(LocalDateTime resolvedAt) {
+        this.resolvedAt = resolvedAt;
+    }
+
+    public User getResolvedBy() {
+        return resolvedBy;
+    }
+
+    public void setResolvedBy(User resolvedBy) {
+        this.resolvedBy = resolvedBy;
+    }
+
+    public ConflictType getType() {
+        return type;
+    }
+
+    public void setType(ConflictType type) {
+        this.type = type;
+    }
 }

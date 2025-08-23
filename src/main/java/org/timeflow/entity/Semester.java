@@ -29,11 +29,12 @@ public class Semester {
     @Column(name = "is_current")
     private boolean isCurrent;
 
-    @OneToMany(mappedBy = "semester", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "semester", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Timetable> timetables;
 
     // Constructors
-    public Semester() {}
+    public Semester() {
+    }
 
     public Semester(String name, LocalDate startDate, LocalDate endDate, String academicYear) {
         this.name = name;
@@ -44,26 +45,61 @@ public class Semester {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    public String getName() {
+        return name;
+    }
 
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getAcademicYear() { return academicYear; }
-    public void setAcademicYear(String academicYear) { this.academicYear = academicYear; }
+    public LocalDate getStartDate() {
+        return startDate;
+    }
 
-    public boolean isCurrent() { return isCurrent; }
-    public void setCurrent(boolean current) { isCurrent = current; }
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
 
-    public List<Timetable> getTimetables() { return timetables; }
-    public void setTimetables(List<Timetable> timetables) { this.timetables = timetables; }
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
+    }
+
+    public boolean isCurrent() {
+        return isCurrent;
+    }
+
+    public void setCurrent(boolean current) {
+        isCurrent = current;
+    }
+
+    public List<Timetable> getTimetables() {
+        return timetables;
+    }
+
+    public void setTimetables(List<Timetable> timetables) {
+        this.timetables = timetables;
+    }
 
     @Override
     public String toString() {

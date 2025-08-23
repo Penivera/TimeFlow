@@ -19,17 +19,18 @@ public class Department {
     @Column(unique = true, nullable = false)
     private String code;
 
-    @Column(name = "head_of_department",nullable = true)
+    @Column(name = "head_of_department", nullable = true)
     private String headOfDepartment;
 
-    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<User> users;
 
-    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Course> courses;
 
     // Constructors
-    public Department() {}
+    public Department() {
+    }
 
     public Department(String name, String code, String headOfDepartment) {
         this.name = name;
@@ -37,24 +38,52 @@ public class Department {
         this.headOfDepartment = headOfDepartment;
     }
 
-
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
+    public String getName() {
+        return name;
+    }
 
-    public String getHeadOfDepartment() { return headOfDepartment; }
-    public void setHeadOfDepartment(String headOfDepartment) { this.headOfDepartment = headOfDepartment; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public List<User> getUsers() { return users; }
-    public void setUsers(List<User> users) { this.users = users; }
+    public String getCode() {
+        return code;
+    }
 
-    public List<Course> getCourses() { return courses; }
-    public void setCourses(List<Course> courses) { this.courses = courses; }
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getHeadOfDepartment() {
+        return headOfDepartment;
+    }
+
+    public void setHeadOfDepartment(String headOfDepartment) {
+        this.headOfDepartment = headOfDepartment;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
+    }
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
 }
-

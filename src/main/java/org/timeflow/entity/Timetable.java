@@ -1,4 +1,5 @@
 package org.timeflow.entity;
+
 import java.time.DayOfWeek;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -12,7 +13,7 @@ public class Timetable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id")
     private Course course;
 
@@ -33,7 +34,7 @@ public class Timetable {
     @Enumerated(EnumType.STRING)
     private TimetableStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "semester_id")
     private Semester semester;
 
@@ -43,7 +44,7 @@ public class Timetable {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "approved_by")
     private User approvedBy;
 
@@ -54,10 +55,11 @@ public class Timetable {
     private String description;
 
     // Constructors
-    public Timetable() {}
+    public Timetable() {
+    }
 
     public Timetable(Course course, DayOfWeek dayOfWeek, LocalTime startTime,
-                     LocalTime endTime, String room, ActivityType type, Semester semester) {
+            LocalTime endTime, String room, ActivityType type, Semester semester) {
         this.course = course;
         this.dayOfWeek = dayOfWeek;
         this.startTime = startTime;
@@ -70,45 +72,115 @@ public class Timetable {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Course getCourse() { return course; }
-    public void setCourse(Course course) { this.course = course; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public java.time.DayOfWeek getDayOfWeek() { return dayOfWeek; }
-    public void setDayOfWeek(DayOfWeek dayOfWeek) { this.dayOfWeek = dayOfWeek; }
+    public Course getCourse() {
+        return course;
+    }
 
-    public LocalTime getStartTime() { return startTime; }
-    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+    public void setCourse(Course course) {
+        this.course = course;
+    }
 
-    public LocalTime getEndTime() { return endTime; }
-    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+    public java.time.DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
 
-    public String getRoom() { return room; }
-    public void setRoom(String room) { this.room = room; }
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
 
-    public ActivityType getType() { return type; }
-    public void setType(ActivityType type) { this.type = type; }
+    public LocalTime getStartTime() {
+        return startTime;
+    }
 
-    public TimetableStatus getStatus() { return status; }
-    public void setStatus(TimetableStatus status) { this.status = status; }
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
 
-    public Semester getSemester() { return semester; }
-    public void setSemester(Semester semester) { this.semester = semester; }
+    public LocalTime getEndTime() {
+        return endTime;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
 
-    public LocalDateTime getApprovedAt() { return approvedAt; }
-    public void setApprovedAt(LocalDateTime approvedAt) { this.approvedAt = approvedAt; }
+    public String getRoom() {
+        return room;
+    }
 
-    public User getApprovedBy() { return approvedBy; }
-    public void setApprovedBy(User approvedBy) { this.approvedBy = approvedBy; }
+    public void setRoom(String room) {
+        this.room = room;
+    }
 
-    public LocalDate getSpecificDate() { return specificDate; }
-    public void setSpecificDate(LocalDate specificDate) { this.specificDate = specificDate; }
+    public ActivityType getType() {
+        return type;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setType(ActivityType type) {
+        this.type = type;
+    }
+
+    public TimetableStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TimetableStatus status) {
+        this.status = status;
+    }
+
+    public Semester getSemester() {
+        return semester;
+    }
+
+    public void setSemester(Semester semester) {
+        this.semester = semester;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
+    }
+
+    public User getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(User approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public LocalDate getSpecificDate() {
+        return specificDate;
+    }
+
+    public void setSpecificDate(LocalDate specificDate) {
+        this.specificDate = specificDate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }

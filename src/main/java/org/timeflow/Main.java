@@ -2,7 +2,7 @@ package org.timeflow;
 
 import com.formdev.flatlaf.FlatLightLaf;
 import org.timeflow.ui.LoginFrame;
-
+import org.timeflow.service.DataSeeder;
 import javax.swing.*;
 
 public class Main {
@@ -16,6 +16,7 @@ public class Main {
             System.err.println("Failed to set FlatLaf look-and-feel: " + e.getMessage());
             e.printStackTrace();
         }
+        new DataSeeder().seedInitialData(); // <-- ADD THIS LINE
 
         // Launch the LoginFrame on the Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
