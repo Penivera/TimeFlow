@@ -72,6 +72,11 @@ public class TimetableFrame extends JDialog {
         } else {
             mainViewPanel = new JPanel(new BorderLayout());
             mainViewPanel.add(new JScrollPane(createTimetableViewPanel()), BorderLayout.CENTER);
+            
+            // Add calendar integration buttons at the bottom
+            JPanel buttonPanel = createCalendarButtonPanel();
+            mainViewPanel.add(buttonPanel, BorderLayout.SOUTH);
+            
             add(mainViewPanel, BorderLayout.CENTER);
         }
     }
@@ -414,5 +419,205 @@ public class TimetableFrame extends JDialog {
     private void loadSemesters() {
         semesterComboBox.setModel(new DefaultComboBoxModel<>(SemesterType.values()));
         semesterComboBox.setEnabled(true);
+    }
+
+    /**
+     * Creates the button panel for calendar integration features
+     */
+    private JPanel createCalendarButtonPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
+            new EmptyBorder(10, 10, 10, 10)
+        ));
+
+        JButton exportICalButton = new JButton("Export to Calendar (.ics)");
+        exportICalButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        exportICalButton.setToolTipText("Export your timetable to iCalendar format for use with any calendar app");
+        exportICalButton.addActionListener(e -> handleExportToICalendar());
+
+        JButton syncGoogleButton = new JButton("Sync to Google Calendar");
+        syncGoogleButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        syncGoogleButton.setToolTipText("Sync your timetable directly to Google Calendar");
+        syncGoogleButton.addActionListener(e -> handleSyncToGoogleCalendar());
+
+        JButton emailTimetableButton = new JButton("Email My Timetable");
+        emailTimetableButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        emailTimetableButton.setToolTipText("Send your current timetable to your email");
+        emailTimetableButton.addActionListener(e -> handleEmailTimetable());
+
+        panel.add(exportICalButton);
+        panel.add(syncGoogleButton);
+        panel.add(emailTimetableButton);
+
+        return panel;
+    }
+
+    /**
+     * Handles exporting timetable to iCalendar format
+     */
+    private void handleExportToICalendar() {
+        try {
+            List<Timetable> timetables = getTimetablesForUser();
+            
+            if (timetables.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "No timetable entries found to export.",
+                    "Export Failed",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save Timetable as iCalendar");
+            fileChooser.setSelectedFile(new java.io.File("timetable.ics"));
+            
+            int userSelection = fileChooser.showSaveDialog(this);
+            
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                java.io.File fileToSave = fileChooser.getSelectedFile();
+                
+                // Ensure .ics extension
+                if (!fileToSave.getName().endsWith(".ics")) {
+                    fileToSave = new java.io.File(fileToSave.getAbsolutePath() + ".ics");
+                }
+                
+                org.timeflow.service.CalendarIntegrationService calendarService = 
+                    new org.timeflow.service.CalendarIntegrationService();
+                String result = calendarService.exportToICalendar(user, timetables, fileToSave);
+                
+                JOptionPane.showMessageDialog(this,
+                    result + "\n\nYou can now import this file into any calendar application.",
+                    "Export Successful",
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                logger.info("User {} exported timetable to iCalendar: {}", user.getUsername(), fileToSave.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            logger.error("Error exporting to iCalendar for user {}", user.getUsername(), e);
+            JOptionPane.showMessageDialog(this,
+                "Error exporting timetable: " + e.getMessage(),
+                "Export Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Handles syncing timetable to Google Calendar
+     */
+    private void handleSyncToGoogleCalendar() {
+        try {
+            List<Timetable> timetables = getTimetablesForUser();
+            
+            if (timetables.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "No timetable entries found to sync.",
+                    "Sync Failed",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "This will sync " + timetables.size() + " timetable entries to your Google Calendar.\n" +
+                "You will need to authorize TimeFlow to access your Google Calendar.\n\n" +
+                "Continue?",
+                "Confirm Google Calendar Sync",
+                JOptionPane.YES_NO_OPTION);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                // Show progress dialog
+                JDialog progressDialog = new JDialog(this, "Syncing...", true);
+                JProgressBar progressBar = new JProgressBar();
+                progressBar.setIndeterminate(true);
+                progressDialog.add(progressBar);
+                progressDialog.setSize(300, 100);
+                progressDialog.setLocationRelativeTo(this);
+                
+                // Perform sync in background thread
+                SwingWorker<String, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected String doInBackground() throws Exception {
+                        org.timeflow.service.CalendarIntegrationService calendarService = 
+                            new org.timeflow.service.CalendarIntegrationService();
+                        return calendarService.syncToGoogleCalendar(user, timetables);
+                    }
+                    
+                    @Override
+                    protected void done() {
+                        progressDialog.dispose();
+                        try {
+                            String result = get();
+                            if (result.startsWith("Error")) {
+                                JOptionPane.showMessageDialog(TimetableFrame.this,
+                                    result,
+                                    "Sync Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                            } else {
+                                JOptionPane.showMessageDialog(TimetableFrame.this,
+                                    result,
+                                    "Sync Successful",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                            }
+                        } catch (Exception e) {
+                            logger.error("Error during Google Calendar sync", e);
+                            JOptionPane.showMessageDialog(TimetableFrame.this,
+                                "Error syncing to Google Calendar: " + e.getMessage(),
+                                "Sync Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                };
+                
+                worker.execute();
+                progressDialog.setVisible(true);
+                
+                logger.info("User {} initiated Google Calendar sync", user.getUsername());
+            }
+        } catch (Exception e) {
+            logger.error("Error syncing to Google Calendar for user {}", user.getUsername(), e);
+            JOptionPane.showMessageDialog(this,
+                "Error syncing to Google Calendar: " + e.getMessage(),
+                "Sync Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Handles emailing the timetable to the user
+     */
+    private void handleEmailTimetable() {
+        try {
+            List<Timetable> timetables = getTimetablesForUser();
+            
+            if (timetables.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "No timetable entries found to email.",
+                    "Email Failed",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "Send your current timetable to " + user.getEmail() + "?",
+                "Confirm Email",
+                JOptionPane.YES_NO_OPTION);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                notificationService.sendTimetableToStudent(user, timetables);
+                JOptionPane.showMessageDialog(this,
+                    "Timetable has been sent to " + user.getEmail(),
+                    "Email Sent",
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                logger.info("User {} emailed their timetable", user.getUsername());
+            }
+        } catch (Exception e) {
+            logger.error("Error emailing timetable for user {}", user.getUsername(), e);
+            JOptionPane.showMessageDialog(this,
+                "Error sending email: " + e.getMessage(),
+                "Email Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

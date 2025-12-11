@@ -11,20 +11,30 @@ import org.timeflow.service.ReportService;
 import org.timeflow.service.TimetableService;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.List; // <-- FIX: Added the missing import
+import java.util.List;
 
 public class MainDashboardFrame extends JFrame {
     private static final Logger logger = LoggerFactory.getLogger(MainDashboardFrame.class);
     private AuthenticationService authService;
+    
+    // Modern color scheme matching LoginFrame
+    private static final Color PRIMARY_COLOR = new Color(52, 152, 219);
+    private static final Color SECONDARY_COLOR = new Color(41, 128, 185);
+    private static final Color SUCCESS_COLOR = new Color(46, 204, 113);
+    private static final Color WARNING_COLOR = new Color(241, 196, 15);
+    private static final Color DANGER_COLOR = new Color(231, 76, 60);
+    private static final Color TEXT_COLOR = new Color(44, 62, 80);
+    private static final Color BACKGROUND_COLOR = new Color(236, 240, 241);
 
     public MainDashboardFrame() {
         authService = AuthenticationService.getInstance();
         initComponents();
         setTitle("TimeFlow - Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
-        setMinimumSize(new Dimension(350, 500));
+        setSize(900, 650);
+        setMinimumSize(new Dimension(700, 550));
         setLocationRelativeTo(null);
         setResizable(true);
     }
@@ -43,39 +53,52 @@ public class MainDashboardFrame extends JFrame {
             return;
         }
 
-        setLayout(new BorderLayout(10, 10));
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(Color.WHITE);
+        setLayout(new BorderLayout(0, 0));
+        
+        // Header panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(PRIMARY_COLOR);
+        headerPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
 
         JLabel welcomeLabel = new JLabel("Welcome, " + user.getUsername());
-        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        welcomeLabel.setForeground(new Color(7, 8, 9));
-        welcomeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        welcomeLabel.setForeground(Color.WHITE);
 
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(Color.WHITE);
-        headerPanel.add(welcomeLabel, BorderLayout.CENTER);
-
-        JButton profileButton = new JButton("About Me");
-        profileButton.setForeground(new Color(7, 8, 9));
-        profileButton.setHorizontalAlignment(SwingConstants.LEFT);
+        JPanel rightHeaderPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightHeaderPanel.setOpaque(false);
+        
+        JButton profileButton = createHeaderButton("About Me");
         profileButton.addActionListener(e -> new AboutFrame(this).setVisible(true));
-        headerPanel.add(profileButton);
-
-        JButton logoutButton = createStyledButton("Logout");
+        
+        JButton logoutButton = createHeaderButton("Logout");
         logoutButton.addActionListener(e -> {
             logger.info("User logged out: {}", user.getUsername());
             authService.logout();
             dispose();
             new LoginFrame().setVisible(true);
         });
-        headerPanel.add(logoutButton, BorderLayout.EAST);
 
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        rightHeaderPanel.add(profileButton);
+        rightHeaderPanel.add(logoutButton);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 2, 20, 20)); // Adjusted grid layout for more buttons
-        buttonPanel.setBackground(Color.WHITE);
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+        headerPanel.add(rightHeaderPanel, BorderLayout.EAST);
+        
+        add(headerPanel, BorderLayout.NORTH);
+
+        // Main content panel
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(BACKGROUND_COLOR);
+        mainPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
+
+        // Role label
+        JLabel roleLabel = new JLabel("Role: " + user.getRole().toString());
+        roleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        roleLabel.setForeground(TEXT_COLOR);
+        roleLabel.setBorder(new EmptyBorder(0, 0, 20, 0));
+
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 2, 20, 20));
+        buttonPanel.setOpaque(false);
 
         switch (user.getRole()) {
             case ADMIN:
@@ -96,35 +119,69 @@ public class MainDashboardFrame extends JFrame {
                 addStudentButtons(buttonPanel);
         }
 
+        mainPanel.add(roleLabel, BorderLayout.NORTH);
         mainPanel.add(buttonPanel, BorderLayout.CENTER);
         add(mainPanel, BorderLayout.CENTER);
     }
 
+    private JButton createHeaderButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        button.setForeground(Color.WHITE);
+        button.setBackground(new Color(255, 255, 255, 30));
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(100, 32));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(255, 255, 255, 50));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(255, 255, 255, 30));
+            }
+        });
+        
+        return button;
+    }
+
     private void addAdminButtons(JPanel panel) {
         logger.info("Adding ADMIN buttons");
-        panel.add(createStyledButton("Create Schedule", e -> new TimetableFrame(authService.getCurrentUser(), true).setVisible(true)));
-        panel.add(createStyledButton("Manage Timetables", e -> new TimetableFrame(authService.getCurrentUser(), false).setVisible(true)));
-        panel.add(createStyledButton("Manage Courses", e -> new CourseManagementFrame(authService.getCurrentUser()).setVisible(true)));
-        panel.add(createStyledButton("Resolve Conflicts", e -> new ConflictManagementFrame(authService.getCurrentUser()).setVisible(true)));
-        panel.add(createStyledButton("Approve Schedules", e -> new ApprovalDashboardFrame(authService.getCurrentUser()).setVisible(true)));
+        panel.add(createDashboardButton("Create Schedule", PRIMARY_COLOR, 
+            e -> new TimetableFrame(authService.getCurrentUser(), true).setVisible(true)));
+        panel.add(createDashboardButton("Manage Timetables", SECONDARY_COLOR, 
+            e -> new TimetableFrame(authService.getCurrentUser(), false).setVisible(true)));
+        panel.add(createDashboardButton("Manage Courses", SUCCESS_COLOR, 
+            e -> new CourseManagementFrame(authService.getCurrentUser()).setVisible(true)));
+        panel.add(createDashboardButton("Resolve Conflicts", WARNING_COLOR, 
+            e -> new ConflictManagementFrame(authService.getCurrentUser()).setVisible(true)));
+        panel.add(createDashboardButton("Approve Schedules", new Color(155, 89, 182), 
+            e -> new ApprovalDashboardFrame(authService.getCurrentUser()).setVisible(true)));
     }
 
     private void addLecturerButtons(JPanel panel) {
         logger.info("Adding LECTURER buttons");
-        panel.add(createStyledButton("Create Schedule", e -> new TimetableFrame(authService.getCurrentUser(), true).setVisible(true)));
-        panel.add(createStyledButton("View My Timetable", e -> new TimetableFrame(authService.getCurrentUser(), false).setVisible(true)));
-        panel.add(createStyledButton("View Conflicts", e -> new ConflictManagementFrame(authService.getCurrentUser()).setVisible(true)));
+        panel.add(createDashboardButton("Create Schedule", PRIMARY_COLOR, 
+            e -> new TimetableFrame(authService.getCurrentUser(), true).setVisible(true)));
+        panel.add(createDashboardButton("View My Timetable", SECONDARY_COLOR, 
+            e -> new TimetableFrame(authService.getCurrentUser(), false).setVisible(true)));
+        panel.add(createDashboardButton("View Conflicts", WARNING_COLOR, 
+            e -> new ConflictManagementFrame(authService.getCurrentUser()).setVisible(true)));
     }
 
     private void addExamsOfficerButtons(JPanel panel) {
         logger.info("Adding EXAMS_OFFICER buttons");
-        panel.add(createStyledButton("Create Schedule", e -> new TimetableFrame(authService.getCurrentUser(), true).setVisible(true)));
-        panel.add(createStyledButton("Manage Exam Timetable", e -> new TimetableFrame(authService.getCurrentUser(), false).setVisible(true)));
-        panel.add(createStyledButton("View Conflicts", e -> new ConflictManagementFrame(authService.getCurrentUser()).setVisible(true)));
-        panel.add(createStyledButton("Approve Schedules", e -> new ApprovalDashboardFrame(authService.getCurrentUser()).setVisible(true)));
+        panel.add(createDashboardButton("Create Schedule", PRIMARY_COLOR, 
+            e -> new TimetableFrame(authService.getCurrentUser(), true).setVisible(true)));
+        panel.add(createDashboardButton("Manage Exam Timetable", SECONDARY_COLOR, 
+            e -> new TimetableFrame(authService.getCurrentUser(), false).setVisible(true)));
+        panel.add(createDashboardButton("View Conflicts", WARNING_COLOR, 
+            e -> new ConflictManagementFrame(authService.getCurrentUser()).setVisible(true)));
+        panel.add(createDashboardButton("Approve Schedules", SUCCESS_COLOR, 
+            e -> new ApprovalDashboardFrame(authService.getCurrentUser()).setVisible(true)));
     }
 
-    // --- FIX: This is the single, correct version of the method ---
     private void addStudentButtons(JPanel panel) {
         logger.info("Adding STUDENT buttons");
 
@@ -133,14 +190,18 @@ public class MainDashboardFrame extends JFrame {
         NotificationService notificationService = new NotificationService();
         User currentUser = authService.getCurrentUser();
 
-        panel.add(createStyledButton("View Timetable", e -> new TimetableFrame(currentUser, false).setVisible(true)));
+        panel.add(createDashboardButton("View Timetable", PRIMARY_COLOR, 
+            e -> new TimetableFrame(currentUser, false).setVisible(true)));
 
-        JButton printPdfButton = createStyledButton("Print Timetable to PDF");
+        JButton printPdfButton = createDashboardButton("Print Timetable", SECONDARY_COLOR);
         printPdfButton.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
                 List<Timetable> timetables = timetableService.getStudentTimetables(currentUser);
                 if (timetables.isEmpty()) {
-                    JOptionPane.showMessageDialog(panel, "You have no approved schedules to print.", "No Timetable", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(panel, 
+                        "You have no approved schedules to print.", 
+                        "No Timetable", 
+                        JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
                 reportService.generateTimetablePdf(currentUser, timetables);
@@ -148,7 +209,7 @@ public class MainDashboardFrame extends JFrame {
         });
         panel.add(printPdfButton);
 
-        JButton emailButton = createStyledButton("Email My Timetable");
+        JButton emailButton = createDashboardButton("Email My Timetable", SUCCESS_COLOR);
         emailButton.addActionListener(e -> {
             int choice = JOptionPane.showConfirmDialog(
                     panel,
@@ -174,9 +235,15 @@ public class MainDashboardFrame extends JFrame {
                         panel.setCursor(Cursor.getDefaultCursor());
                         try {
                             get();
-                            JOptionPane.showMessageDialog(panel, "Timetable has been sent to your email.", "Email Sent", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(panel, 
+                                "Timetable has been sent to your email.", 
+                                "Email Sent", 
+                                JOptionPane.INFORMATION_MESSAGE);
                         } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(panel, "Could not send email: " + ex.getCause().getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(panel, 
+                                "Could not send email: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), 
+                                "Error", 
+                                JOptionPane.ERROR_MESSAGE);
                         }
                     }
                 };
@@ -186,18 +253,30 @@ public class MainDashboardFrame extends JFrame {
         panel.add(emailButton);
     }
 
-    private JButton createStyledButton(String text) {
+    private JButton createDashboardButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        button.setBackground(new Color(7, 8, 9));
+        button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(250, 80));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+        
         return button;
     }
 
-    // Overloaded helper for cleaner code
-    private JButton createStyledButton(String text, java.awt.event.ActionListener listener) {
-        JButton button = createStyledButton(text);
+    private JButton createDashboardButton(String text, Color bgColor, java.awt.event.ActionListener listener) {
+        JButton button = createDashboardButton(text, bgColor);
         button.addActionListener(listener);
         return button;
     }

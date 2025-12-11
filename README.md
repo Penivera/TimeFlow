@@ -23,6 +23,23 @@ TimeFlow is a sophisticated Java-based desktop application designed for comprehe
 - **Password hashing** with Spring Security Crypto
 - **Email integration** for notifications
 
+### 🆕 New Features (v1.0.0)
+- **📅 Calendar Integration**
+  - Export timetables to iCalendar (.ics) format
+  - Direct sync with Google Calendar
+  - Compatible with all major calendar applications
+- **📧 Automated Email Reminders**
+  - Daily morning reminders for scheduled classes
+  - Personalized for students and lecturers
+  - Automatic weekday-only scheduling
+- **🎨 Enhanced UI**
+  - Modern color scheme with improved visual hierarchy
+  - Interactive hover effects and better user feedback
+  - Streamlined workflows and better error messages
+  - Responsive design with consistent spacing
+
+> **See [NEW_FEATURES.md](docs/NEW_FEATURES.md) for detailed documentation on new features.**
+
 ## 🏗️ Architecture
 
 ### Technology Stack
